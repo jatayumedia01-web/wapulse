@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f6f8f9;
+  --foreground: #0c1b1e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #c8d3d5;
+  border-radius: 9999px;
+}
+
+.chat-bg {
+  background-color: #e9e2d9;
+  background-image: radial-gradient(circle at 1px 1px, rgba(12, 27, 30, 0.06) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-up {
+  animation: fadeUp 0.25s ease both;
+}

@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Contact {
+  id            String         @id @default(cuid())
+  phone         String         @unique
+  name          String?
+  email         String?
+  tags          String         @default("") // comma separated
+  attributes    String         @default("{}") // JSON string of custom attributes
+  optedIn       Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  conversations Conversation[]
+  campaignSends CampaignSend[]
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  contactId     String
+  contact       Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  status        String    @default("OPEN") // OPEN | PENDING | RESOLVED
+  assignee      String?
+  aiEnabled     Boolean   @default(true)
+  unread        Int       @default(0)
+  lastMessageAt DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  messages      Message[]
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  direction      String // IN | OUT
+  type           String       @default("text") // text | template | image | document | interactive
+  body           String
+  status         String       @default("SENT") // QUEUED | SENT | DELIVERED | READ | FAILED
+  waMessageId    String?
+  meta           String       @default("{}")
+  sentiment      String? // positive | neutral | negative
+  isAi           Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model Template {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  category  String     @default("MARKETING") // MARKETING | UTILITY | AUTHENTICATION
+  language  String     @default("en")
+  header    String?
+  body      String
+  footer    String?
+  buttons   String     @default("[]") // JSON array [{type, text}]
+  status    String     @default("DRAFT") // DRAFT | PENDING | APPROVED | REJECTED
+  createdAt DateTime   @default(now())
+  campaigns Campaign[]
+}
+
+model Campaign {
+  id          String         @id @default(cuid())
+  name        String
+  templateId  String
+  template    Template       @relation(fields: [templateId], references: [id])
+  audienceTag String         @default("") // empty = all opted-in contacts
+  status      String         @default("DRAFT") // DRAFT | SCHEDULED | RUNNING | COMPLETED
+  scheduledAt DateTime?
+  total       Int            @default(0)
+  sent        Int            @default(0)
+  delivered   Int            @default(0)
+  read        Int            @default(0)
+  replied     Int            @default(0)
+  failed      Int            @default(0)
+  createdAt   DateTime       @default(now())
+  sends       CampaignSend[]
+}
+
+model CampaignSend {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contactId  String
+  contact    Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  status     String   @default("SENT")
+  createdAt  DateTime @default(now())
+}
+
+model AutomationRule {
+  id        String   @id @default(cuid())
+  name      String
+  trigger   String   @default("KEYWORD") // KEYWORD | WELCOME | AWAY | AI_AGENT
+  keywords  String   @default("") // comma separated
+  matchType String   @default("contains") // contains | exact
+  reply     String   @default("")
+  enabled   Boolean  @default(true)
+  priority  Int      @default(0)
+  hits      Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  name       String
+  key        String    @unique
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+}
+
+model Setting {
+  id            Int     @id @default(1)
+  businessName  String  @default("WAPulse Demo Business")
+  phoneNumberId String  @default("")
+  wabaId        String  @default("")
+  accessToken   String  @default("")
+  verifyToken   String  @default("wapulse_verify")
+  openaiApiKey  String  @default("")
+  aiPersona     String  @default("You are a friendly, concise customer support agent. Help customers with orders, pricing and product queries.")
+  awayMessage   String  @default("Thanks for reaching out! Our team is currently away — we'll get back to you shortly.")
+  demoMode      Boolean @default(true)
+}
