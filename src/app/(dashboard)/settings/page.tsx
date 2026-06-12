@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save, Plug, Bot, Building2, Check } from "lucide-react";
+import { Save, Plug, Bot, Building2, Check, Clock } from "lucide-react";
 import { PageHeader, Button, Field, inputCls } from "@/components/ui";
 
 type Settings = {
@@ -13,8 +13,15 @@ type Settings = {
   openaiApiKey: string;
   aiPersona: string;
   awayMessage: string;
+  awayEnabled: boolean;
+  workStart: string;
+  workEnd: string;
+  workDays: string;
+  autoAssign: boolean;
   demoMode: boolean;
 };
+
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function SettingsPage() {
   const [form, setForm] = useState<Settings | null>(null);
@@ -97,6 +104,55 @@ export default function SettingsPage() {
         </section>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-[15px] font-bold text-slate-900">
+              <Clock size={17} className="text-amber-500" /> Working Hours & Away Message
+            </h2>
+            <label className="flex cursor-pointer items-center gap-2 text-[12.5px] font-semibold text-slate-600">
+              Away replies
+              <button
+                onClick={() => set("awayEnabled", !form.awayEnabled)}
+                className={`relative h-5 w-9 rounded-full transition-colors ${form.awayEnabled ? "bg-emerald-500" : "bg-slate-300"}`}
+              >
+                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${form.awayEnabled ? "left-[18px]" : "left-0.5"}`} />
+              </button>
+            </label>
+          </div>
+          <div className="mb-3.5 grid grid-cols-2 gap-4">
+            <Field label="Start time">
+              <input type="time" className={inputCls} value={form.workStart} onChange={(e) => set("workStart", e.target.value)} />
+            </Field>
+            <Field label="End time">
+              <input type="time" className={inputCls} value={form.workEnd} onChange={(e) => set("workEnd", e.target.value)} />
+            </Field>
+          </div>
+          <p className="mb-1.5 text-[12.5px] font-semibold text-slate-700">Working days</p>
+          <div className="mb-4 flex gap-1.5">
+            {DAYS.map((d, i) => {
+              const days = form.workDays.split(",").map((x) => parseInt(x.trim(), 10)).filter((x) => !isNaN(x));
+              const active = days.includes(i);
+              return (
+                <button
+                  key={d}
+                  onClick={() => {
+                    const next = active ? days.filter((x) => x !== i) : [...days, i];
+                    set("workDays", next.sort().join(","));
+                  }}
+                  className={`rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-colors ${
+                    active ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+                  }`}
+                >
+                  {d}
+                </button>
+              );
+            })}
+          </div>
+          <Field label="Away message" hint="Sent automatically outside working hours (max once every 6 hours per conversation)">
+            <textarea rows={2} className={`${inputCls} resize-none`} value={form.awayMessage} onChange={(e) => set("awayMessage", e.target.value)} />
+          </Field>
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="mb-4 flex items-center gap-2 text-[15px] font-bold text-slate-900">
             <Bot size={17} className="text-violet-600" /> AI Agent
           </h2>
@@ -105,9 +161,6 @@ export default function SettingsPage() {
           </Field>
           <Field label="AI persona / instructions">
             <textarea rows={3} className={`${inputCls} resize-none`} value={form.aiPersona} onChange={(e) => set("aiPersona", e.target.value)} />
-          </Field>
-          <Field label="Away message">
-            <textarea rows={2} className={`${inputCls} resize-none`} value={form.awayMessage} onChange={(e) => set("awayMessage", e.target.value)} />
           </Field>
         </section>
       </div>

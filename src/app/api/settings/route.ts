@@ -14,8 +14,11 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json();
   await getSettings();
   const data: Record<string, unknown> = {};
-  for (const key of ["businessName", "phoneNumberId", "wabaId", "verifyToken", "aiPersona", "awayMessage"]) {
+  for (const key of ["businessName", "phoneNumberId", "wabaId", "verifyToken", "aiPersona", "awayMessage", "workStart", "workEnd", "workDays"]) {
     if (typeof body[key] === "string") data[key] = body[key];
+  }
+  for (const key of ["awayEnabled", "autoAssign"]) {
+    if (typeof body[key] === "boolean") data[key] = body[key];
   }
   // Secrets: only update when a real (non-masked) value is provided
   for (const key of ["accessToken", "openaiApiKey"]) {

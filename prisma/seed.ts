@@ -228,6 +228,127 @@ async function main() {
     });
   }
 
+  if ((await prisma.teamMember.count()) === 0) {
+    await prisma.teamMember.createMany({
+      data: [
+        { name: "Madhu", email: "madhu@wapulse.demo", role: "ADMIN" },
+        { name: "Priya", email: "priya@wapulse.demo", role: "AGENT" },
+        { name: "Kiran", email: "kiran@wapulse.demo", role: "AGENT" },
+      ],
+    });
+  }
+
+  if ((await prisma.quickReply.count()) === 0) {
+    await prisma.quickReply.createMany({
+      data: [
+        { shortcut: "greeting", body: "Hi! 👋 Thanks for reaching out to us. How can I help you today?" },
+        { shortcut: "pricing", body: "Our plans start at ₹999/month (Starter) and ₹2,499/month (Growth). Would you like a detailed comparison?" },
+        { shortcut: "thanks", body: "Thank you for contacting us! Feel free to reach out anytime. Have a great day! 😊" },
+        { shortcut: "hold", body: "Please give me a moment while I check this for you. 🙏" },
+        { shortcut: "payment", body: "You can pay securely via UPI, cards or net banking using the payment link we share. Payments are processed instantly." },
+      ],
+    });
+  }
+
+  if ((await prisma.product.count()) === 0) {
+    await prisma.product.createMany({
+      data: [
+        { name: "Wireless Earbuds Pro", description: "Active noise cancellation, 32h battery", price: 2999, sku: "EB-PRO-01" },
+        { name: "Smart Fitness Band", description: "Heart rate, SpO2, 14-day battery", price: 1799, sku: "FB-SMART-02" },
+        { name: "Power Bank 20000mAh", description: "65W fast charging, dual USB-C", price: 1499, sku: "PB-20K-03" },
+        { name: "Bluetooth Speaker Mini", description: "IPX7 waterproof, 12h playtime", price: 999, sku: "SP-MINI-04" },
+      ],
+    });
+  }
+
+  if ((await prisma.flow.count()) === 0) {
+    await prisma.flow.create({
+      data: {
+        name: "Main Menu",
+        keywords: "menu, start, options",
+        runs: 64,
+        nodes: JSON.stringify([
+          {
+            id: "n1",
+            message: "Welcome to WAPulse Demo Business! 👋 What would you like to do?",
+            buttons: [
+              { text: "Browse products", next: "n2" },
+              { text: "Track my order", next: "n3" },
+              { text: "Talk to an agent", next: "n4" },
+            ],
+          },
+          {
+            id: "n2",
+            message: "Here are our bestsellers:\n\n1️⃣ Wireless Earbuds Pro — ₹2,999\n2️⃣ Smart Fitness Band — ₹1,799\n3️⃣ Power Bank 20000mAh — ₹1,499\n\nWant me to create an order for you?",
+            buttons: [
+              { text: "Yes, order now", next: "n4" },
+              { text: "Back to menu", next: "n1" },
+            ],
+          },
+          {
+            id: "n3",
+            message: "Please share your order ID (e.g. ORD-12345) and I'll fetch the live status for you. 📦",
+            buttons: [],
+          },
+          {
+            id: "n4",
+            message: "Connecting you to our team — an agent will reply here shortly. 🙋",
+            buttons: [],
+          },
+        ]),
+      },
+    });
+  }
+
+  // Drip sequence
+  const existingDrip = await prisma.dripSequence.findFirst({ where: { name: "Post-Purchase Follow-up" } });
+  if (!existingDrip) {
+    const orderTemplate = await prisma.template.findUnique({ where: { name: "order_confirmation" } });
+    const drip = await prisma.dripSequence.create({
+      data: {
+        name: "Post-Purchase Follow-up",
+        triggerType: "EVENT",
+        triggerEvent: "order.created",
+        enabled: true,
+      },
+    });
+    await prisma.dripStep.createMany({
+      data: [
+        { sequenceId: drip.id, stepNumber: 1, templateId: orderTemplate?.id ?? null, message: "Hi {{name}}, thank you for your purchase! 🎉 Your order is being processed.", delayValue: 0, delayUnit: "minutes" },
+        { sequenceId: drip.id, stepNumber: 2, message: "Just checking in — your order has shipped and is on the way! 📦 Let us know if you need anything.", delayValue: 2, delayUnit: "days" },
+        { sequenceId: drip.id, stepNumber: 3, message: "We hope you love your purchase! ⭐ Leave us a quick review — it means the world to us.", delayValue: 7, delayUnit: "days" },
+      ],
+    });
+  }
+
+  // Custom fields
+  const customFieldDefs = [
+    { name: "City", key: "city", type: "text", options: "[]" },
+    { name: "Birthday", key: "birthday", type: "date", options: "[]" },
+    { name: "Customer Tier", key: "customer_tier", type: "select", options: JSON.stringify(["Bronze", "Silver", "Gold", "Platinum"]) },
+  ];
+  for (const f of customFieldDefs) {
+    await prisma.customField.upsert({ where: { key: f.key }, create: f, update: {} });
+  }
+
+  // Sample WhatsApp form
+  const existingForm = await prisma.form.findFirst({ where: { name: "Lead Qualification" } });
+  if (!existingForm) {
+    await prisma.form.create({
+      data: {
+        name: "Lead Qualification",
+        description: "Qualify inbound leads automatically",
+        fields: JSON.stringify([
+          { label: "Full Name", key: "name", type: "text", required: true },
+          { label: "Email", key: "email", type: "email", required: false },
+          { label: "Budget Range", key: "budget", type: "select", required: false },
+          { label: "Interested In", key: "interest", type: "text", required: false },
+        ]),
+        enabled: true,
+      },
+    });
+  }
+
   console.log("✅ Seed complete");
 }
 

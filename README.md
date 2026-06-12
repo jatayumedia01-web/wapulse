@@ -8,14 +8,23 @@ A full-stack, AI-powered WhatsApp Business API platform — a self-hosted altern
 
 | Module | What it does |
 | --- | --- |
-| **Team Inbox** | Shared multi-agent inbox with real-time conversation view, delivery/read ticks, sentiment flags, resolve/reopen workflow |
-| **AI Agent** | Auto-replies to customers using OpenAI (optional) or the built-in intent engine — per-conversation on/off toggle |
+| **Team Inbox** | Shared multi-agent inbox: delivery/read ticks, sentiment flags, labels, conversation search, resolve/reopen, assignee management |
+| **Quick Replies** | Canned responses — type `/shortcut` in the composer for instant insertion |
+| **Private Notes** | Internal team notes inside conversations, never sent to the customer |
+| **AI Agent** | Auto-replies using OpenAI (optional) or the built-in intent engine — per-conversation on/off toggle |
 | **AI Copilot** | One-click smart reply suggestions for agents, sentiment detection on every inbound message |
-| **Broadcast Campaigns** | Template campaigns with tag-based audience targeting and a sent → delivered → read → replied funnel |
-| **Template Manager** | Create WhatsApp templates with headers, footers, variables (`{{1}}`) and buttons — with live WhatsApp-style preview |
+| **Chatbot Flows** | Visual multi-step button-based journeys with keyword triggers and branch navigation |
+| **Team & Auto-assignment** | Agents with roles, round-robin assignment to the least-loaded agent, per-agent performance metrics |
+| **Working Hours** | Business hours per weekday with automatic away messages outside hours |
+| **Broadcast Campaigns** | Tag-based audience targeting, **scheduling**, **retargeting (read-not-replied)** and a sent → delivered → read → replied funnel |
+| **Template Manager** | Templates with **media headers (image/video/doc)**, variables (`{{1}}`), URL/phone/quick-reply buttons — live WhatsApp-style preview |
 | **Automation Rules** | Keyword auto-replies, welcome messages and AI fallback with priority ordering and hit analytics |
+| **Commerce** | Product catalog, WhatsApp orders with auto-generated payment links, order lifecycle (pending → paid → shipped) |
+| **Contacts CRM** | Tags, opt-in management, **CSV import/export**, search |
+| **Web Widget** | Website chat button generator, wa.me click-to-chat links and QR codes |
 | **Developer API** | Gupshup-style public REST API (`POST /api/v1/messages`) with API key management |
-| **Analytics** | Message volume timeline, delivery/read rates, AI-handled count, negative sentiment alerts |
+| **Outgoing Webhooks** | Push events (message.received, order.paid, campaign.completed…) to Zapier/n8n/your backend |
+| **Analytics** | Message volume timeline, delivery/read rates, AI-handled count, negative sentiment alerts, agent performance |
 | **WhatsApp Cloud API** | Native Meta Graph API v21 integration: text, template & interactive messages, webhook receiver with status updates |
 | **Demo Mode** | The entire product works without a Meta account — sends are simulated with realistic delivery/read receipts |
 
@@ -29,11 +38,15 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) — you'll land on a dashboard pre-loaded with demo conversations, campaigns and templates.
 
-### Try the AI agent
+### Try it out
 
 1. Open **Team Inbox** → pick any conversation
-2. Use the amber "simulate a customer message" box and type `what is the price?`
-3. Watch the automation engine / AI agent reply instantly
+2. Use the amber "simulate a customer message" box:
+   - type `menu` → the **chatbot flow** kicks in with buttons (reply with a button text like `Browse products` to navigate)
+   - type `what is the price?` → keyword automation answers
+   - type anything else → the **AI agent** replies
+3. Type `/` in the composer to use **quick replies**, or hit the 📝 icon for a **private note**
+4. In **Commerce**, create an order — the payment link is sent on WhatsApp automatically
 
 ## 🔌 Going live with Meta
 

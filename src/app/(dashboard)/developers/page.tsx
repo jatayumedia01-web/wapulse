@@ -1,10 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Trash2, Copy, Check, KeyRound } from "lucide-react";
-import { PageHeader, Button, Modal, Field, inputCls } from "@/components/ui";
+import { Plus, Trash2, Copy, Check, KeyRound, Webhook } from "lucide-react";
+import { PageHeader, Button, Badge, Modal, Field, inputCls } from "@/components/ui";
 
 type ApiKey = { id: string; name: string; key: string; createdAt: string; lastUsedAt: string | null };
+type WebhookEndpoint = {
+  id: string;
+  url: string;
+  events: string;
+  enabled: boolean;
+  lastStatus: number;
+  lastFiredAt: string | null;
+};
+
+const WEBHOOK_EVENTS = ["message.received", "message.sent", "conversation.resolved", "campaign.completed", "order.created", "order.paid"];
 
 const CURL_EXAMPLE = `curl -X POST https://your-domain.com/api/v1/messages \\
   -H "x-api-key: wap_YOUR_KEY" \\
@@ -28,10 +38,40 @@ export default function DevelopersPage() {
   const [name, setName] = useState("");
   const [newKey, setNewKey] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [endpoints, setEndpoints] = useState<WebhookEndpoint[]>([]);
+  const [whOpen, setWhOpen] = useState(false);
+  const [whForm, setWhForm] = useState({ url: "", events: ["message.received", "message.sent"] as string[], secret: "" });
+  const [whError, setWhError] = useState("");
 
   const load = useCallback(async () => {
-    setKeys(await (await fetch("/api/keys")).json());
+    const [k, w] = await Promise.all([
+      fetch("/api/keys").then((r) => r.json()),
+      fetch("/api/webhooks-out").then((r) => r.json()),
+    ]);
+    setKeys(k);
+    setEndpoints(w);
   }, []);
+
+  async function addWebhook() {
+    setWhError("");
+    const res = await fetch("/api/webhooks-out", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...whForm, events: whForm.events.join(",") }),
+    });
+    if (!res.ok) {
+      setWhError((await res.json()).error ?? "Failed");
+      return;
+    }
+    setWhOpen(false);
+    setWhForm({ url: "", events: ["message.received", "message.sent"], secret: "" });
+    load();
+  }
+
+  async function removeWebhook(id: string) {
+    await fetch(`/api/webhooks-out?id=${id}`, { method: "DELETE" });
+    load();
+  }
 
   useEffect(() => {
     load();
@@ -93,6 +133,45 @@ export default function DevelopersPage() {
           </div>
         </div>
 
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="flex items-center gap-2 text-[15px] font-bold text-slate-900">
+                <Webhook size={17} className="text-violet-600" /> Outgoing Webhooks
+              </h2>
+              <p className="mt-0.5 text-[12.5px] text-slate-500">Push platform events to Zapier, n8n or your backend in real time</p>
+            </div>
+            <Button variant="secondary" onClick={() => setWhOpen(true)}>
+              <Plus size={14} /> Add Endpoint
+            </Button>
+          </div>
+          <div className="space-y-2.5">
+            {endpoints.map((e) => (
+              <div key={e.id} className="rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="truncate font-mono text-[12px] font-semibold text-slate-700">{e.url}</p>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {e.lastFiredAt && (
+                      <Badge tone={e.lastStatus >= 200 && e.lastStatus < 300 ? "green" : "red"}>
+                        {e.lastStatus === -1 ? "failed" : `HTTP ${e.lastStatus}`}
+                      </Badge>
+                    )}
+                    <button onClick={() => removeWebhook(e.id)} className="rounded-lg p-1 text-slate-300 hover:bg-rose-50 hover:text-rose-500">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {e.events.split(",").filter(Boolean).map((ev) => (
+                    <span key={ev} className="rounded-md bg-violet-50 px-1.5 py-0.5 font-mono text-[10.5px] font-semibold text-violet-600">{ev.trim()}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+            {endpoints.length === 0 && <p className="py-6 text-center text-[13px] text-slate-400">No webhook endpoints yet</p>}
+          </div>
+        </div>
+
         <div className="space-y-6">
           <div className="rounded-2xl border border-slate-200 bg-white p-6">
             <div className="mb-3 flex items-center justify-between">
@@ -123,6 +202,42 @@ export default function DevelopersPage() {
           </div>
         </div>
       </div>
+
+      <Modal open={whOpen} onClose={() => setWhOpen(false)} title="Add Webhook Endpoint">
+        <Field label="Endpoint URL">
+          <input className={inputCls} value={whForm.url} onChange={(e) => setWhForm({ ...whForm, url: e.target.value })} placeholder="https://your-server.com/hooks/wapulse" />
+        </Field>
+        <p className="mb-1.5 text-[12.5px] font-semibold text-slate-700">Events</p>
+        <div className="mb-3.5 flex flex-wrap gap-1.5">
+          {WEBHOOK_EVENTS.map((ev) => {
+            const active = whForm.events.includes(ev);
+            return (
+              <button
+                key={ev}
+                onClick={() =>
+                  setWhForm({
+                    ...whForm,
+                    events: active ? whForm.events.filter((x) => x !== ev) : [...whForm.events, ev],
+                  })
+                }
+                className={`rounded-full px-2.5 py-1 font-mono text-[11px] font-semibold transition-colors ${
+                  active ? "bg-violet-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                }`}
+              >
+                {ev}
+              </button>
+            );
+          })}
+        </div>
+        <Field label="Shared secret (optional)" hint="Sent as x-wapulse-secret header for request verification">
+          <input className={inputCls} value={whForm.secret} onChange={(e) => setWhForm({ ...whForm, secret: e.target.value })} />
+        </Field>
+        {whError && <p className="mb-3 text-[12.5px] font-medium text-rose-600">{whError}</p>}
+        <div className="flex justify-end gap-2">
+          <Button variant="secondary" onClick={() => setWhOpen(false)}>Cancel</Button>
+          <Button onClick={addWebhook}>Add Endpoint</Button>
+        </div>
+      </Modal>
 
       <Modal open={open} onClose={() => setOpen(false)} title={newKey ? "API Key Created" : "Generate API Key"}>
         {newKey ? (

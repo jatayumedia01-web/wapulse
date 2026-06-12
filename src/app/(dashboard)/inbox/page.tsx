@@ -8,11 +8,18 @@ import {
   CheckCheck,
   Clock,
   Bot,
-  User,
   CircleDot,
   Smile,
   Frown,
   FlaskConical,
+  Search,
+  StickyNote,
+  Tag,
+  X,
+  Zap,
+  Filter,
+  ChevronDown,
+  ListFilter,
 } from "lucide-react";
 import { Badge, Button, inputCls, statusTone } from "@/components/ui";
 
@@ -20,16 +27,19 @@ type Contact = { id: string; name: string | null; phone: string; tags: string; e
 type Message = {
   id: string;
   direction: "IN" | "OUT";
+  kind: string;
   body: string;
   status: string;
   sentiment: string | null;
   isAi: boolean;
+  author: string | null;
   createdAt: string;
 };
 type ConversationListItem = {
   id: string;
   status: string;
   assignee: string | null;
+  labels: string;
   unread: number;
   aiEnabled: boolean;
   lastMessageAt: string;
@@ -37,8 +47,11 @@ type ConversationListItem = {
   messages: Message[];
 };
 type ConversationDetail = ConversationListItem & { messages: Message[] };
+type QuickReply = { id: string; shortcut: string; body: string };
+type TeamMember = { id: string; name: string; role: string };
 
 const FILTERS = ["ALL", "OPEN", "PENDING", "RESOLVED"];
+const LABEL_PRESETS = ["hot-lead", "vip", "complaint", "follow-up", "payment"];
 
 function initials(name: string | null, phone: string) {
   if (name) return name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
@@ -66,23 +79,42 @@ function StatusTicks({ status }: { status: string }) {
 export default function InboxPage() {
   const [conversations, setConversations] = useState<ConversationListItem[]>([]);
   const [filter, setFilter] = useState("ALL");
+  const [search, setSearch] = useState("");
+  const [filterLabel, setFilterLabel] = useState("");
+  const [filterAssignee, setFilterAssignee] = useState("");
+  const [filterUnread, setFilterUnread] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<ConversationDetail | null>(null);
   const [draft, setDraft] = useState("");
+  const [noteMode, setNoteMode] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggest, setLoadingSuggest] = useState(false);
   const [simulateText, setSimulateText] = useState("");
   const [sending, setSending] = useState(false);
+  const [quickReplies, setQuickReplies] = useState<QuickReply[]>([]);
+  const [team, setTeam] = useState<TeamMember[]>([]);
+  const [showQuick, setShowQuick] = useState(false);
+  const [labelInput, setLabelInput] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const loadList = useCallback(async () => {
-    const res = await fetch(`/api/conversations?status=${filter}`);
+    const params = new URLSearchParams({ status: filter, q: search });
+    if (filterLabel) params.set("label", filterLabel);
+    if (filterAssignee) params.set("assignee", filterAssignee);
+    if (filterUnread) params.set("unread", "1");
+    const res = await fetch(`/api/conversations?${params}`);
     setConversations(await res.json());
-  }, [filter]);
+  }, [filter, search, filterLabel, filterAssignee, filterUnread]);
 
   const loadDetail = useCallback(async (id: string) => {
     const res = await fetch(`/api/conversations/${id}`);
     if (res.ok) setDetail(await res.json());
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/quick-replies").then((r) => r.json()).then(setQuickReplies);
+    fetch("/api/team").then((r) => r.json()).then(setTeam);
   }, []);
 
   useEffect(() => {
@@ -102,6 +134,15 @@ export default function InboxPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [detail?.messages.length]);
 
+  // "/" quick reply palette
+  useEffect(() => {
+    setShowQuick(draft.startsWith("/"));
+  }, [draft]);
+
+  const filteredQuick = draft.startsWith("/")
+    ? quickReplies.filter((q) => q.shortcut.includes(draft.slice(1).toLowerCase()))
+    : quickReplies;
+
   async function sendMessage(body: string) {
     if (!selectedId || !body.trim()) return;
     setSending(true);
@@ -110,8 +151,9 @@ export default function InboxPage() {
     await fetch(`/api/conversations/${selectedId}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body }),
+      body: JSON.stringify({ body, kind: noteMode ? "NOTE" : "MESSAGE" }),
     });
+    setNoteMode(false);
     await loadDetail(selectedId);
     await loadList();
     setSending(false);
@@ -154,25 +196,80 @@ export default function InboxPage() {
     await loadList();
   }
 
+  function toggleLabel(label: string) {
+    if (!detail) return;
+    const labels = detail.labels.split(",").map((l) => l.trim()).filter(Boolean);
+    const next = labels.includes(label) ? labels.filter((l) => l !== label) : [...labels, label];
+    patchConversation({ labels: next.join(",") });
+  }
+
+  const detailLabels = detail?.labels.split(",").map((l) => l.trim()).filter(Boolean) ?? [];
+
   return (
     <div className="flex h-screen">
       {/* Conversation list */}
       <div className="flex w-80 shrink-0 flex-col border-r border-slate-200 bg-white">
         <div className="border-b border-slate-200 px-4 py-4">
           <h1 className="text-lg font-bold text-slate-900">Team Inbox</h1>
-          <div className="mt-3 flex gap-1.5">
-            {FILTERS.map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                  filter === f ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                }`}
-              >
-                {f === "ALL" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
-              </button>
-            ))}
+          <div className="relative mt-3">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search name or phone…"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-8 pr-3 text-[12.5px] outline-none focus:border-emerald-400"
+            />
           </div>
+          <div className="mt-3 flex items-center justify-between">
+            <div className="flex gap-1.5">
+              {FILTERS.map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                    filter === f ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  }`}
+                >
+                  {f === "ALL" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className={`flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold transition-colors ${showAdvanced || filterLabel || filterAssignee || filterUnread ? "bg-violet-100 text-violet-700" : "text-slate-400 hover:text-slate-600"}`}
+            >
+              <ListFilter size={12} /> Filter
+            </button>
+          </div>
+          {showAdvanced && (
+            <div className="mt-2.5 space-y-2 rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <p className="mb-1 text-[10px] font-bold uppercase text-slate-400">Label</p>
+                  <select className="w-full rounded-lg border border-slate-200 bg-white py-1 px-2 text-[11.5px] text-slate-700 outline-none" value={filterLabel} onChange={(e) => setFilterLabel(e.target.value)}>
+                    <option value="">Any</option>
+                    {LABEL_PRESETS.map((l) => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <p className="mb-1 text-[10px] font-bold uppercase text-slate-400">Assignee</p>
+                  <select className="w-full rounded-lg border border-slate-200 bg-white py-1 px-2 text-[11.5px] text-slate-700 outline-none" value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)}>
+                    <option value="">Anyone</option>
+                    {team.map((t) => <option key={t.id} value={t.name}>{t.name}</option>)}
+                  </select>
+                </div>
+              </div>
+              <label className="flex cursor-pointer items-center gap-2 text-[11.5px] text-slate-600">
+                <input type="checkbox" checked={filterUnread} onChange={(e) => setFilterUnread(e.target.checked)} />
+                Unread only
+              </label>
+              {(filterLabel || filterAssignee || filterUnread) && (
+                <button onClick={() => { setFilterLabel(""); setFilterAssignee(""); setFilterUnread(false); }} className="text-[11px] font-semibold text-rose-500 hover:text-rose-700">
+                  ✕ Clear filters
+                </button>
+              )}
+            </div>
+          )}
         </div>
         <div className="flex-1 overflow-y-auto">
           {conversations.map((c) => (
@@ -203,6 +300,14 @@ export default function InboxPage() {
                     </span>
                   )}
                 </span>
+                {(c.labels || c.assignee) && (
+                  <span className="mt-1 flex flex-wrap items-center gap-1">
+                    {c.assignee && <Badge tone="violet">{c.assignee}</Badge>}
+                    {c.labels.split(",").filter(Boolean).slice(0, 2).map((l) => (
+                      <Badge key={l} tone="amber">{l.trim()}</Badge>
+                    ))}
+                  </span>
+                )}
               </span>
             </button>
           ))}
@@ -223,7 +328,7 @@ export default function InboxPage() {
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3.5">
+            <div className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
               <div className="flex items-center gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-[12px] font-bold text-white">
                   {initials(detail.contact.name, detail.contact.phone)}
@@ -232,8 +337,43 @@ export default function InboxPage() {
                   <p className="text-[14px] font-bold text-slate-900">{detail.contact.name ?? detail.contact.phone}</p>
                   <p className="text-[11.5px] text-slate-400">+{detail.contact.phone}</p>
                 </div>
+                <div className="ml-2 flex items-center gap-1.5">
+                  {detailLabels.map((l) => (
+                    <button key={l} onClick={() => toggleLabel(l)} className="group flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 hover:bg-amber-100">
+                      {l} <X size={10} className="opacity-0 group-hover:opacity-100" />
+                    </button>
+                  ))}
+                  <div className="relative">
+                    <button onClick={() => setLabelInput(!labelInput)} className="flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-2 py-0.5 text-[11px] font-semibold text-slate-400 hover:border-amber-400 hover:text-amber-600">
+                      <Tag size={10} /> Label
+                    </button>
+                    {labelInput && (
+                      <div className="absolute left-0 top-7 z-20 w-44 rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+                        {LABEL_PRESETS.map((l) => (
+                          <button
+                            key={l}
+                            onClick={() => { toggleLabel(l); setLabelInput(false); }}
+                            className={`block w-full rounded-lg px-2.5 py-1.5 text-left text-[12px] font-medium hover:bg-slate-50 ${detailLabels.includes(l) ? "text-amber-600" : "text-slate-600"}`}
+                          >
+                            {detailLabels.includes(l) ? "✓ " : ""}{l}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
               <div className="flex items-center gap-2">
+                <select
+                  value={detail.assignee ?? ""}
+                  onChange={(e) => patchConversation({ assignee: e.target.value || null })}
+                  className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[12px] font-semibold text-slate-600 outline-none"
+                >
+                  <option value="">Unassigned</option>
+                  {team.map((m) => (
+                    <option key={m.id} value={m.name}>{m.name}</option>
+                  ))}
+                </select>
                 <Badge tone={statusTone(detail.status)}>{detail.status}</Badge>
                 {detail.status !== "RESOLVED" ? (
                   <Button variant="secondary" onClick={() => patchConversation({ status: "RESOLVED" })}>
@@ -249,32 +389,43 @@ export default function InboxPage() {
 
             <div className="chat-bg flex-1 overflow-y-auto px-8 py-6">
               <div className="mx-auto max-w-3xl space-y-2.5">
-                {detail.messages.map((m) => (
-                  <div key={m.id} className={`flex ${m.direction === "OUT" ? "justify-end" : "justify-start"}`}>
-                    <div
-                      className={`max-w-[75%] rounded-2xl px-3.5 py-2.5 shadow-sm ${
-                        m.direction === "OUT"
-                          ? "rounded-br-md bg-[#d7f8d0] text-slate-800"
-                          : "rounded-bl-md bg-white text-slate-800"
-                      }`}
-                    >
-                      {m.isAi && (
-                        <span className="mb-1 flex items-center gap-1 text-[10.5px] font-bold text-violet-600">
-                          <Bot size={11} /> AI Agent
-                        </span>
-                      )}
-                      <p className="whitespace-pre-wrap text-[13.5px] leading-relaxed">{m.body}</p>
-                      <span className="mt-1 flex items-center justify-end gap-1.5">
-                        {m.direction === "IN" && m.sentiment === "negative" && <Frown size={12} className="text-rose-500" />}
-                        {m.direction === "IN" && m.sentiment === "positive" && <Smile size={12} className="text-emerald-500" />}
-                        <span className="text-[10.5px] text-slate-400">
-                          {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        </span>
-                        {m.direction === "OUT" && <StatusTicks status={m.status} />}
-                      </span>
+                {detail.messages.map((m) =>
+                  m.kind === "NOTE" ? (
+                    <div key={m.id} className="flex justify-center">
+                      <div className="max-w-[80%] rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 shadow-sm">
+                        <p className="flex items-center gap-1.5 text-[10.5px] font-bold text-amber-700">
+                          <StickyNote size={11} /> Private note · {m.author ?? "Agent"}
+                        </p>
+                        <p className="mt-0.5 whitespace-pre-wrap text-[13px] text-amber-900">{m.body}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ) : (
+                    <div key={m.id} className={`flex ${m.direction === "OUT" ? "justify-end" : "justify-start"}`}>
+                      <div
+                        className={`max-w-[75%] rounded-2xl px-3.5 py-2.5 shadow-sm ${
+                          m.direction === "OUT"
+                            ? "rounded-br-md bg-[#d7f8d0] text-slate-800"
+                            : "rounded-bl-md bg-white text-slate-800"
+                        }`}
+                      >
+                        {m.direction === "OUT" && m.author && m.author !== "Agent" && (
+                          <span className={`mb-1 flex items-center gap-1 text-[10.5px] font-bold ${m.isAi ? "text-violet-600" : "text-emerald-700"}`}>
+                            {m.isAi ? <Bot size={11} /> : <Zap size={11} />} {m.author}
+                          </span>
+                        )}
+                        <p className="whitespace-pre-wrap text-[13.5px] leading-relaxed">{m.body}</p>
+                        <span className="mt-1 flex items-center justify-end gap-1.5">
+                          {m.direction === "IN" && m.sentiment === "negative" && <Frown size={12} className="text-rose-500" />}
+                          {m.direction === "IN" && m.sentiment === "positive" && <Smile size={12} className="text-emerald-500" />}
+                          <span className="text-[10.5px] text-slate-400">
+                            {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                          {m.direction === "OUT" && <StatusTicks status={m.status} />}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                )}
                 <div ref={bottomRef} />
               </div>
             </div>
@@ -293,7 +444,25 @@ export default function InboxPage() {
               </div>
             )}
 
-            <div className="border-t border-slate-200 bg-white px-6 py-4">
+            {showQuick && filteredQuick.length > 0 && (
+              <div className="border-t border-slate-200 bg-white px-6 py-2">
+                <p className="mb-1.5 text-[10.5px] font-bold uppercase tracking-wide text-slate-400">Quick replies</p>
+                <div className="max-h-36 space-y-1 overflow-y-auto">
+                  {filteredQuick.map((q) => (
+                    <button
+                      key={q.id}
+                      onClick={() => { setDraft(q.body); setShowQuick(false); }}
+                      className="flex w-full items-baseline gap-2 rounded-lg px-2.5 py-1.5 text-left hover:bg-emerald-50"
+                    >
+                      <span className="shrink-0 font-mono text-[11.5px] font-bold text-emerald-600">/{q.shortcut}</span>
+                      <span className="truncate text-[12.5px] text-slate-600">{q.body}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className={`border-t px-6 py-4 ${noteMode ? "border-amber-300 bg-amber-50/60" : "border-slate-200 bg-white"}`}>
               <div className="flex items-end gap-2">
                 <button
                   onClick={getSuggestions}
@@ -302,6 +471,15 @@ export default function InboxPage() {
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600 transition-colors hover:bg-violet-200 disabled:opacity-50"
                 >
                   <Sparkles size={17} className={loadingSuggest ? "animate-pulse" : ""} />
+                </button>
+                <button
+                  onClick={() => setNoteMode(!noteMode)}
+                  title="Private note (not sent to customer)"
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                    noteMode ? "bg-amber-400 text-white" : "bg-amber-100 text-amber-600 hover:bg-amber-200"
+                  }`}
+                >
+                  <StickyNote size={17} />
                 </button>
                 <textarea
                   value={draft}
@@ -313,11 +491,11 @@ export default function InboxPage() {
                     }
                   }}
                   rows={1}
-                  placeholder="Type a message… (Enter to send)"
-                  className={`${inputCls} max-h-32 resize-none`}
+                  placeholder={noteMode ? "Write a private note for your team…" : "Type a message… ('/' for quick replies, Enter to send)"}
+                  className={`${inputCls} max-h-32 resize-none ${noteMode ? "border-amber-300 bg-white" : ""}`}
                 />
                 <Button onClick={() => sendMessage(draft)} disabled={sending || !draft.trim()} className="h-10">
-                  <Send size={15} /> Send
+                  <Send size={15} /> {noteMode ? "Add Note" : "Send"}
                 </Button>
               </div>
               <div className="mt-2.5 flex items-center gap-2">
@@ -326,7 +504,7 @@ export default function InboxPage() {
                   value={simulateText}
                   onChange={(e) => setSimulateText(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && simulateInbound()}
-                  placeholder="Demo: simulate a customer message (try 'what is the price?')"
+                  placeholder="Demo: simulate a customer message (try 'menu' to trigger the chatbot flow)"
                   className="flex-1 rounded-lg border border-dashed border-amber-300 bg-amber-50/50 px-3 py-1.5 text-[12px] text-slate-700 outline-none placeholder:text-amber-600/60 focus:border-amber-400"
                 />
               </div>
@@ -376,10 +554,21 @@ export default function InboxPage() {
               </button>
             </div>
             <div>
-              <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-400">Assignee</p>
-              <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5">
-                <User size={15} className="text-slate-400" />
-                <span className="text-[13px] font-medium text-slate-700">{detail.assignee ?? "Unassigned"}</span>
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-400">Labels</p>
+              <div className="flex flex-wrap gap-1.5">
+                {LABEL_PRESETS.map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => toggleLabel(l)}
+                    className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                      detailLabels.includes(l)
+                        ? "bg-amber-400 text-white"
+                        : "bg-slate-100 text-slate-500 hover:bg-amber-100 hover:text-amber-700"
+                    }`}
+                  >
+                    {l}
+                  </button>
+                ))}
               </div>
             </div>
           </div>

@@ -7,6 +7,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { PageHeader, Badge, statusTone } from "@/components/ui";
 
 type Analytics = {
+  agents: Array<{ name: string; role: string; open: number; resolved: number; avgResponseMins: number }>;
   totals: {
     contacts: number;
     openConversations: number;
@@ -135,6 +136,46 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {data && data.agents.length > 0 && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+            <h2 className="mb-4 text-[15px] font-bold text-slate-900">Agent Performance</h2>
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-slate-100 text-[11.5px] font-bold uppercase tracking-wide text-slate-400">
+                  <th className="pb-2.5">Agent</th>
+                  <th className="pb-2.5">Open</th>
+                  <th className="pb-2.5">Resolved</th>
+                  <th className="pb-2.5">Avg First Response</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.agents.map((a) => (
+                  <tr key={a.name} className="border-b border-slate-50 last:border-0">
+                    <td className="py-3">
+                      <span className="flex items-center gap-2.5">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 text-[11px] font-bold text-white">
+                          {a.name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase()}
+                        </span>
+                        <span>
+                          <span className="block text-[13px] font-semibold text-slate-800">{a.name}</span>
+                          <span className="block text-[11px] text-slate-400">{a.role}</span>
+                        </span>
+                      </span>
+                    </td>
+                    <td className="py-3 text-[13.5px] font-bold text-slate-800">{a.open}</td>
+                    <td className="py-3 text-[13.5px] font-bold text-slate-800">{a.resolved}</td>
+                    <td className="py-3">
+                      <Badge tone={a.avgResponseMins <= 10 ? "green" : a.avgResponseMins <= 30 ? "amber" : "red"}>
+                        {a.avgResponseMins} min
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -12,13 +12,17 @@ model Contact {
   phone         String         @unique
   name          String?
   email         String?
-  tags          String         @default("") // comma separated
-  attributes    String         @default("{}") // JSON string of custom attributes
+  tags          String         @default("")
+  attributes    String         @default("{}") // JSON — custom field values
   optedIn       Boolean        @default(true)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   conversations Conversation[]
   campaignSends CampaignSend[]
+  orders        Order[]
+  dripEnrolments DripEnrolment[]
+  events        ContactEvent[]
+  formResponses FormResponse[]
 }
 
 model Conversation {
@@ -27,6 +31,8 @@ model Conversation {
   contact       Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
   status        String    @default("OPEN") // OPEN | PENDING | RESOLVED
   assignee      String?
+  labels        String    @default("")
+  flowState     String    @default("{}")
   aiEnabled     Boolean   @default(true)
   unread        Int       @default(0)
   lastMessageAt DateTime  @default(now())
@@ -39,12 +45,14 @@ model Message {
   conversationId String
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   direction      String // IN | OUT
-  type           String       @default("text") // text | template | image | document | interactive
+  kind           String       @default("MESSAGE") // MESSAGE | NOTE
+  type           String       @default("text") // text | template | image | document | interactive | list
   body           String
+  author         String?
   status         String       @default("SENT") // QUEUED | SENT | DELIVERED | READ | FAILED
   waMessageId    String?
   meta           String       @default("{}")
-  sentiment      String? // positive | neutral | negative
+  sentiment      String?
   isAi           Boolean      @default(false)
   createdAt      DateTime     @default(now())
 
@@ -52,53 +60,68 @@ model Message {
 }
 
 model Template {
-  id        String     @id @default(cuid())
-  name      String     @unique
-  category  String     @default("MARKETING") // MARKETING | UTILITY | AUTHENTICATION
-  language  String     @default("en")
-  header    String?
-  body      String
-  footer    String?
-  buttons   String     @default("[]") // JSON array [{type, text}]
-  status    String     @default("DRAFT") // DRAFT | PENDING | APPROVED | REJECTED
-  createdAt DateTime   @default(now())
-  campaigns Campaign[]
+  id         String     @id @default(cuid())
+  name       String     @unique
+  category   String     @default("MARKETING")
+  language   String     @default("en")
+  headerType String     @default("TEXT") // TEXT | IMAGE | VIDEO | DOCUMENT | CAROUSEL
+  mediaUrl   String     @default("")
+  header     String?
+  body       String
+  footer     String?
+  buttons    String     @default("[]")
+  // Carousel: JSON array of {imageUrl, header, body, buttons[]}
+  carouselCards String  @default("[]")
+  // LTO (Limited Time Offer)
+  isLTO      Boolean    @default(false)
+  ltoExpiry  DateTime?
+  couponCode String     @default("")
+  status     String     @default("DRAFT")
+  createdAt  DateTime   @default(now())
+  campaigns  Campaign[]
+  dripSteps  DripStep[]
 }
 
 model Campaign {
-  id          String         @id @default(cuid())
-  name        String
-  templateId  String
-  template    Template       @relation(fields: [templateId], references: [id])
-  audienceTag String         @default("") // empty = all opted-in contacts
-  status      String         @default("DRAFT") // DRAFT | SCHEDULED | RUNNING | COMPLETED
-  scheduledAt DateTime?
-  total       Int            @default(0)
-  sent        Int            @default(0)
-  delivered   Int            @default(0)
-  read        Int            @default(0)
-  replied     Int            @default(0)
-  failed      Int            @default(0)
-  createdAt   DateTime       @default(now())
-  sends       CampaignSend[]
+  id           String         @id @default(cuid())
+  name         String
+  templateId   String
+  template     Template       @relation(fields: [templateId], references: [id])
+  audienceTag  String         @default("")
+  retargetOfId String?
+  status       String         @default("DRAFT")
+  scheduledAt  DateTime?
+  // Auto-retry
+  retryEnabled Boolean        @default(false)
+  retryAfterHrs Int           @default(24)
+  retryCount   Int            @default(0)
+  total        Int            @default(0)
+  sent         Int            @default(0)
+  delivered    Int            @default(0)
+  read         Int            @default(0)
+  replied      Int            @default(0)
+  failed       Int            @default(0)
+  createdAt    DateTime       @default(now())
+  sends        CampaignSend[]
 }
 
 model CampaignSend {
-  id         String   @id @default(cuid())
-  campaignId String
-  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  contactId  String
-  contact    Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  status     String   @default("SENT")
-  createdAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contactId   String
+  contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  status      String   @default("SENT")
+  retryCount  Int      @default(0)
+  createdAt   DateTime @default(now())
 }
 
 model AutomationRule {
   id        String   @id @default(cuid())
   name      String
-  trigger   String   @default("KEYWORD") // KEYWORD | WELCOME | AWAY | AI_AGENT
-  keywords  String   @default("") // comma separated
-  matchType String   @default("contains") // contains | exact
+  trigger   String   @default("KEYWORD") // KEYWORD | WELCOME | AWAY | AI_AGENT | OPT_OUT | OPT_IN
+  keywords  String   @default("")
+  matchType String   @default("contains")
   reply     String   @default("")
   enabled   Boolean  @default(true)
   priority  Int      @default(0)
@@ -106,6 +129,95 @@ model AutomationRule {
   createdAt DateTime @default(now())
 }
 
+// ── Drip Sequences ─────────────────────────────────────────────
+model DripSequence {
+  id          String          @id @default(cuid())
+  name        String
+  triggerType String          @default("MANUAL") // MANUAL | EVENT | TAG
+  triggerEvent String         @default("") // e.g. "order.created"
+  triggerTag  String          @default("")
+  enabled     Boolean         @default(true)
+  enrollCount Int             @default(0)
+  createdAt   DateTime        @default(now())
+  steps       DripStep[]
+  enrolments  DripEnrolment[]
+}
+
+model DripStep {
+  id             String       @id @default(cuid())
+  sequenceId     String
+  sequence       DripSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  stepNumber     Int
+  // Either a template or a plain-text message
+  templateId     String?
+  template       Template?    @relation(fields: [templateId], references: [id])
+  message        String       @default("") // plain text fallback
+  delayValue     Int          @default(1)
+  delayUnit      String       @default("hours") // minutes | hours | days
+  createdAt      DateTime     @default(now())
+
+  @@unique([sequenceId, stepNumber])
+}
+
+model DripEnrolment {
+  id           String       @id @default(cuid())
+  sequenceId   String
+  sequence     DripSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  contactId    String
+  contact      Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  currentStep  Int          @default(0)
+  status       String       @default("ACTIVE") // ACTIVE | COMPLETED | CANCELLED
+  nextSendAt   DateTime
+  createdAt    DateTime     @default(now())
+
+  @@unique([sequenceId, contactId])
+}
+
+// ── Custom Contact Fields ───────────────────────────────────────
+model CustomField {
+  id           String   @id @default(cuid())
+  name         String   @unique // display name, e.g. "City"
+  key          String   @unique // machine key, e.g. "city"
+  type         String   @default("text") // text | number | date | boolean | select
+  options      String   @default("[]") // for select type
+  createdAt    DateTime @default(now())
+}
+
+// ── Contact Events (for event-based triggers) ──────────────────
+model ContactEvent {
+  id        String   @id @default(cuid())
+  contactId String
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  event     String   // e.g. "order.created", "cart.abandoned", "signup"
+  data      String   @default("{}") // JSON metadata
+  createdAt DateTime @default(now())
+
+  @@index([contactId, event])
+}
+
+// ── WhatsApp Forms ─────────────────────────────────────────────
+model Form {
+  id          String         @id @default(cuid())
+  name        String
+  description String         @default("")
+  fields      String         @default("[]") // JSON [{label, key, type, required}]
+  enabled     Boolean        @default(true)
+  flowId      String?        // optional: link to chatbot flow
+  responses   FormResponse[]
+  createdAt   DateTime       @default(now())
+}
+
+model FormResponse {
+  id        String   @id @default(cuid())
+  formId    String
+  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  contactId String
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  answers   String   @default("{}") // JSON {fieldKey: value}
+  createdAt DateTime @default(now())
+}
+
+// ── API Keys ────────────────────────────────────────────────────
 model ApiKey {
   id         String    @id @default(cuid())
   name       String
@@ -114,6 +226,7 @@ model ApiKey {
   lastUsedAt DateTime?
 }
 
+// ── Settings ────────────────────────────────────────────────────
 model Setting {
   id            Int     @id @default(1)
   businessName  String  @default("WAPulse Demo Business")
@@ -124,5 +237,69 @@ model Setting {
   openaiApiKey  String  @default("")
   aiPersona     String  @default("You are a friendly, concise customer support agent. Help customers with orders, pricing and product queries.")
   awayMessage   String  @default("Thanks for reaching out! Our team is currently away — we'll get back to you shortly.")
+  awayEnabled   Boolean @default(false)
+  workStart     String  @default("09:00")
+  workEnd       String  @default("19:00")
+  workDays      String  @default("1,2,3,4,5,6")
+  autoAssign    Boolean @default(true)
   demoMode      Boolean @default(true)
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      String   @default("AGENT")
+  createdAt DateTime @default(now())
+}
+
+model QuickReply {
+  id        String   @id @default(cuid())
+  shortcut  String   @unique
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @default("")
+  price       Float
+  currency    String   @default("INR")
+  imageUrl    String   @default("")
+  sku         String   @default("")
+  inStock     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model Order {
+  id          String   @id @default(cuid())
+  contactId   String
+  contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  items       String   @default("[]")
+  total       Float
+  status      String   @default("PENDING")
+  paymentLink String   @default("")
+  createdAt   DateTime @default(now())
+}
+
+model Flow {
+  id        String   @id @default(cuid())
+  name      String
+  keywords  String   @default("")
+  nodes     String   @default("[]")
+  enabled   Boolean  @default(true)
+  runs      Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model WebhookEndpoint {
+  id          String    @id @default(cuid())
+  url         String
+  events      String    @default("message.received,message.sent")
+  secret      String    @default("")
+  enabled     Boolean   @default(true)
+  lastStatus  Int       @default(0)
+  lastFiredAt DateTime?
+  createdAt   DateTime  @default(now())
 }

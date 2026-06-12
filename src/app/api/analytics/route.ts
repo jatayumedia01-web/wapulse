@@ -35,7 +35,32 @@ export async function GET() {
     }
   }
 
+  // Agent performance: open/resolved load + avg first response time
+  const agents = await prisma.teamMember.findMany();
+  const agentStats = await Promise.all(
+    agents.map(async (a) => {
+      const [open, resolved] = await Promise.all([
+        prisma.conversation.count({ where: { assignee: a.name, status: "OPEN" } }),
+        prisma.conversation.count({ where: { assignee: a.name, status: "RESOLVED" } }),
+      ]);
+      const convs = await prisma.conversation.findMany({
+        where: { assignee: a.name },
+        include: { messages: { where: { kind: "MESSAGE" }, orderBy: { createdAt: "asc" }, take: 10 } },
+        take: 50,
+      });
+      const responseTimes: number[] = [];
+      for (const c of convs) {
+        const firstIn = c.messages.find((m) => m.direction === "IN");
+        const firstOut = firstIn ? c.messages.find((m) => m.direction === "OUT" && m.createdAt > firstIn.createdAt) : null;
+        if (firstIn && firstOut) responseTimes.push(firstOut.createdAt.getTime() - firstIn.createdAt.getTime());
+      }
+      const avgMs = responseTimes.length ? responseTimes.reduce((s, t) => s + t, 0) / responseTimes.length : 0;
+      return { name: a.name, role: a.role, open, resolved, avgResponseMins: Math.round(avgMs / 60000) };
+    })
+  );
+
   return NextResponse.json({
+    agents: agentStats,
     totals: {
       contacts: totalContacts,
       openConversations,

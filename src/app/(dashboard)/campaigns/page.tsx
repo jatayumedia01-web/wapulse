@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Rocket, Loader2 } from "lucide-react";
+import { Plus, Rocket, Loader2, RefreshCcw, CalendarClock } from "lucide-react";
 import { PageHeader, Button, Badge, Modal, Field, inputCls, statusTone } from "@/components/ui";
 
 type Template = { id: string; name: string; status: string };
@@ -10,6 +10,8 @@ type Campaign = {
   name: string;
   status: string;
   audienceTag: string;
+  retargetOfId: string | null;
+  scheduledAt: string | null;
   total: number;
   sent: number;
   delivered: number;
@@ -51,7 +53,7 @@ export default function CampaignsPage() {
   const [open, setOpen] = useState(false);
   const [launching, setLaunching] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({ name: "", templateId: "", audienceTag: "" });
+  const [form, setForm] = useState({ name: "", templateId: "", audienceTag: "", scheduledAt: "", retargetOfId: "", retryEnabled: false, retryAfterHrs: 24 });
 
   const load = useCallback(async () => {
     const [c, t] = await Promise.all([
@@ -78,8 +80,22 @@ export default function CampaignsPage() {
       return;
     }
     setOpen(false);
-    setForm({ name: "", templateId: "", audienceTag: "" });
+    setForm({ name: "", templateId: "", audienceTag: "", scheduledAt: "", retargetOfId: "", retryEnabled: false, retryAfterHrs: 24 });
     load();
+  }
+
+  function openRetarget(c: Campaign) {
+    setError("");
+    setForm({
+      name: `Re: ${c.name} (read, not replied)`,
+      templateId: "",
+      audienceTag: "",
+      scheduledAt: "",
+      retargetOfId: c.id,
+      retryEnabled: false,
+      retryAfterHrs: 24,
+    });
+    setOpen(true);
   }
 
   async function launch(id: string) {
@@ -111,16 +127,35 @@ export default function CampaignsPage() {
                 </div>
                 <p className="mt-1 text-[12.5px] text-slate-500">
                   Template: <span className="font-mono font-semibold">{c.template.name}</span>
-                  {" · "}Audience: {c.audienceTag ? <Badge tone="blue">{c.audienceTag}</Badge> : "All opted-in contacts"}
+                  {" · "}Audience:{" "}
+                  {c.retargetOfId ? (
+                    <Badge tone="violet">retarget: read-not-replied</Badge>
+                  ) : c.audienceTag ? (
+                    <Badge tone="blue">{c.audienceTag}</Badge>
+                  ) : (
+                    "All opted-in contacts"
+                  )}
+                  {c.scheduledAt && c.status === "SCHEDULED" && (
+                    <span className="ml-1 inline-flex items-center gap-1 text-violet-600">
+                      <CalendarClock size={12} /> {new Date(c.scheduledAt).toLocaleString()}
+                    </span>
+                  )}
                   {c.failed > 0 && <span className="text-rose-500"> · {c.failed} failed</span>}
                 </p>
               </div>
-              {(c.status === "DRAFT" || c.status === "SCHEDULED") && (
-                <Button onClick={() => launch(c.id)} disabled={launching === c.id}>
-                  {launching === c.id ? <Loader2 size={15} className="animate-spin" /> : <Rocket size={15} />}
-                  {launching === c.id ? "Sending…" : "Launch Now"}
-                </Button>
-              )}
+              <div className="flex gap-2">
+                {c.status === "COMPLETED" && (
+                  <Button variant="secondary" onClick={() => openRetarget(c)}>
+                    <RefreshCcw size={14} /> Retarget
+                  </Button>
+                )}
+                {(c.status === "DRAFT" || c.status === "SCHEDULED") && (
+                  <Button onClick={() => launch(c.id)} disabled={launching === c.id}>
+                    {launching === c.id ? <Loader2 size={15} className="animate-spin" /> : <Rocket size={15} />}
+                    {launching === c.id ? "Sending…" : "Launch Now"}
+                  </Button>
+                )}
+              </div>
             </div>
             <Funnel c={c} />
           </div>
@@ -130,7 +165,12 @@ export default function CampaignsPage() {
         )}
       </div>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="New Campaign">
+      <Modal open={open} onClose={() => setOpen(false)} title={form.retargetOfId ? "Retargeting Campaign" : "New Campaign"}>
+        {form.retargetOfId && (
+          <p className="mb-4 rounded-xl bg-violet-50 px-4 py-3 text-[12.5px] leading-relaxed text-violet-800">
+            Audience: contacts who <b>read but didn&apos;t reply</b> to the original campaign.
+          </p>
+        )}
         <Field label="Campaign name">
           <input className={inputCls} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Summer Sale Blast" />
         </Field>
@@ -142,9 +182,36 @@ export default function CampaignsPage() {
             ))}
           </select>
         </Field>
-        <Field label="Audience tag (optional)" hint="Leave empty to send to all opted-in contacts">
-          <input className={inputCls} value={form.audienceTag} onChange={(e) => setForm({ ...form, audienceTag: e.target.value })} placeholder="vip" />
+        {!form.retargetOfId && (
+          <Field label="Audience tag (optional)" hint="Leave empty to send to all opted-in contacts">
+            <input className={inputCls} value={form.audienceTag} onChange={(e) => setForm({ ...form, audienceTag: e.target.value })} placeholder="vip" />
+          </Field>
+        )}
+        <Field label="Schedule (optional)" hint="Leave empty to launch manually">
+          <input
+            type="datetime-local"
+            className={inputCls}
+            value={form.scheduledAt}
+            onChange={(e) => setForm({ ...form, scheduledAt: e.target.value })}
+          />
         </Field>
+        <div className="flex items-center gap-4">
+          <label className="flex cursor-pointer items-center gap-2 text-[13px] text-slate-700">
+            <input type="checkbox" checked={form.retryEnabled} onChange={(e) => setForm({ ...form, retryEnabled: e.target.checked })} />
+            Auto-retry failed sends
+          </label>
+          {form.retryEnabled && (
+            <div className="flex items-center gap-2 text-[13px] text-slate-600">
+              after
+              <input
+                type="number" min={1} max={168} className={`${inputCls} w-20`}
+                value={form.retryAfterHrs}
+                onChange={(e) => setForm({ ...form, retryAfterHrs: parseInt(e.target.value) || 24 })}
+              />
+              hours
+            </div>
+          )}
+        </div>
         {error && <p className="mb-3 text-[12.5px] font-medium text-rose-600">{error}</p>}
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>

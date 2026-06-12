@@ -12,17 +12,43 @@ import {
   Code2,
   Settings,
   Zap,
+  GitBranch,
+  ShoppingBag,
+  UserCog,
+  Globe,
+  Layers,
+  ClipboardList,
+  Columns,
 } from "lucide-react";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/inbox", label: "Team Inbox", icon: MessageSquare },
-  { href: "/contacts", label: "Contacts", icon: Users },
-  { href: "/campaigns", label: "Campaigns", icon: Megaphone },
-  { href: "/templates", label: "Templates", icon: FileText },
-  { href: "/automation", label: "Automation", icon: Bot },
-  { href: "/developers", label: "Developer API", icon: Code2 },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { group: "Engage", items: [
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/inbox", label: "Team Inbox", icon: MessageSquare },
+  ]},
+  { group: "Contacts & Audience", items: [
+    { href: "/contacts", label: "Contacts", icon: Users },
+    { href: "/custom-fields", label: "Custom Fields", icon: Columns },
+  ]},
+  { group: "Messaging", items: [
+    { href: "/campaigns", label: "Campaigns", icon: Megaphone },
+    { href: "/drip", label: "Drip Sequences", icon: Layers },
+    { href: "/templates", label: "Templates", icon: FileText },
+  ]},
+  { group: "Automation", items: [
+    { href: "/automation", label: "Automation Rules", icon: Bot },
+    { href: "/flows", label: "Chatbot Flows", icon: GitBranch },
+    { href: "/forms", label: "WA Forms", icon: ClipboardList },
+  ]},
+  { group: "Business", items: [
+    { href: "/commerce", label: "Commerce", icon: ShoppingBag },
+    { href: "/team", label: "Team", icon: UserCog },
+    { href: "/widget", label: "Web Widget", icon: Globe },
+  ]},
+  { group: "Developer", items: [
+    { href: "/developers", label: "Developer API", icon: Code2 },
+    { href: "/settings", label: "Settings", icon: Settings },
+  ]},
 ];
 
 export default function Sidebar() {
@@ -39,24 +65,29 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <nav className="mt-2 flex-1 space-y-1 px-3">
-        {NAV.map(({ href, label, icon: Icon }) => {
-          const active = pathname.startsWith(href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13.5px] font-medium transition-colors ${
-                active
-                  ? "bg-emerald-500/15 text-emerald-400"
-                  : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
-              }`}
-            >
-              <Icon size={17} />
-              {label}
-            </Link>
-          );
-        })}
+      <nav className="mt-2 flex-1 space-y-0.5 overflow-y-auto px-3 pb-2">
+        {NAV.map(({ group, items }) => (
+          <div key={group} className="mb-1">
+            <p className="mb-0.5 mt-3 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-600">{group}</p>
+            {items.map(({ href, label, icon: Icon }) => {
+              const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors ${
+                    active
+                      ? "bg-emerald-500/15 text-emerald-400"
+                      : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+                  }`}
+                >
+                  <Icon size={16} />
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       <div className="mx-3 mb-4 rounded-xl bg-white/5 p-3.5">

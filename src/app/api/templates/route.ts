@@ -18,11 +18,15 @@ export async function POST(req: NextRequest) {
         name,
         category: body.category || "MARKETING",
         language: body.language || "en",
+        headerType: body.headerType || "TEXT",
+        mediaUrl: body.mediaUrl || "",
         header: body.header || null,
         body: body.body,
         footer: body.footer || null,
         buttons: JSON.stringify(body.buttons ?? []),
-        // In demo mode templates are auto-approved; live mode would submit to Meta
+        isLTO: body.isLTO ?? false,
+        couponCode: body.couponCode ?? "",
+        ltoExpiry: body.ltoExpiry ? new Date(body.ltoExpiry) : null,
         status: body.submit ? "APPROVED" : "DRAFT",
       },
     });

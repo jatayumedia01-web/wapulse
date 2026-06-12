@@ -22,6 +22,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (typeof body.status === "string") data.status = body.status;
   if (typeof body.assignee === "string" || body.assignee === null) data.assignee = body.assignee;
   if (typeof body.aiEnabled === "boolean") data.aiEnabled = body.aiEnabled;
+  if (typeof body.labels === "string") data.labels = body.labels;
   const conversation = await prisma.conversation.update({ where: { id }, data });
   return NextResponse.json(conversation);
 }

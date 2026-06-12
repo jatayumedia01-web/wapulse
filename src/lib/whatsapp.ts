@@ -1,9 +1,6 @@
 /**
  * WhatsApp Cloud API client (Meta Graph API v21.0).
- *
- * When credentials are missing or demoMode is enabled, all sends are
- * simulated locally so the entire product works out-of-the-box without
- * a Meta business account.
+ * Demo mode simulates all sends locally — no Meta account needed.
  */
 import { getSettings } from "./db";
 
@@ -31,10 +28,7 @@ async function graphPost(path: string, token: string, payload: unknown): Promise
   try {
     const res = await fetch(`${GRAPH}/${path}`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
     const data = await res.json();
@@ -49,8 +43,7 @@ async function graphPost(path: string, token: string, payload: unknown): Promise
 
 async function liveCredentials() {
   const s = await getSettings();
-  const live = !s.demoMode && s.accessToken && s.phoneNumberId;
-  return { live, token: s.accessToken, phoneNumberId: s.phoneNumberId };
+  return { live: !s.demoMode && !!s.accessToken && !!s.phoneNumberId, token: s.accessToken, phoneNumberId: s.phoneNumberId };
 }
 
 export async function sendText(to: string, body: string): Promise<SendResult> {
@@ -96,6 +89,26 @@ export async function sendInteractiveButtons(
       type: "button",
       body: { text: body },
       action: { buttons: buttons.map((b) => ({ type: "reply", reply: b })) },
+    },
+  });
+}
+
+export async function sendInteractiveList(
+  to: string,
+  body: string,
+  buttonLabel: string,
+  sections: Array<{ title: string; rows: Array<{ id: string; title: string; description?: string }> }>
+): Promise<SendResult> {
+  const { live, token, phoneNumberId } = await liveCredentials();
+  if (!live) return { ok: true, waMessageId: fakeId(), simulated: true };
+  return graphPost(`${phoneNumberId}/messages`, token, {
+    messaging_product: "whatsapp",
+    to,
+    type: "interactive",
+    interactive: {
+      type: "list",
+      body: { text: body },
+      action: { button: buttonLabel, sections },
     },
   });
 }
