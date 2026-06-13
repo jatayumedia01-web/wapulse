@@ -24,7 +24,7 @@ function UsageMeter({ label, used, limit, icon: Icon }: { label: string; used: n
   const isUnlimited = limit === -1;
   const isOver = pct >= 100;
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded-xl glass-card p-4">
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon size={14} className="text-slate-500" />
@@ -101,7 +101,7 @@ export default function BillingPage() {
       />
       <div className="space-y-6 p-8">
         {/* Current plan */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+        <div className="glass-card p-6">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[13px] font-semibold text-slate-500">Current plan</p>
@@ -176,7 +176,7 @@ export default function BillingPage() {
         {status.events.length > 0 && (
           <div>
             <h3 className="mb-3 text-[14px] font-bold text-slate-900">Billing history</h3>
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <div className="overflow-hidden glass-card">
               <table className="w-full text-[13px]">
                 <thead>
                   <tr className="border-b border-slate-100 text-left text-[11.5px] font-semibold uppercase tracking-wide text-slate-400">

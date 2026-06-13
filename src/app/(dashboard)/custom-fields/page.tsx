@@ -24,7 +24,7 @@ export default function CustomFieldsPage() {
 
   const load = useCallback(async () => {
     const data = await fetch("/api/custom-fields").then((r) => r.json());
-    setFields(data);
+    setFields(Array.isArray(data) ? data : []);
   }, []);
 
   useEffect(() => { load(); }, [load]);

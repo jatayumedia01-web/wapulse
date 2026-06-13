@@ -22,7 +22,7 @@ export default function FormsPage() {
 
   const load = useCallback(async () => {
     const data = await fetch("/api/forms").then((r) => r.json());
-    setForms(data);
+    setForms(Array.isArray(data) ? data : []);
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -67,7 +67,7 @@ export default function FormsPage() {
         {forms.map((f) => {
           const flds: FormField[] = JSON.parse(f.fields || "[]");
           return (
-            <div key={f.id} className="fade-up flex flex-col rounded-2xl border border-slate-200 bg-white p-5">
+            <div key={f.id} className="fade-up flex flex-col glass-card p-5">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2.5">
                   <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">

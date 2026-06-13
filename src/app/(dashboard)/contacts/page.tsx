@@ -44,7 +44,8 @@ export default function ContactsPage() {
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/contacts?q=${encodeURIComponent(query)}`);
-    setContacts(await res.json());
+    const data = await res.json();
+    setContacts(Array.isArray(data) ? data : []);
   }, [query]);
 
   useEffect(() => {
@@ -183,7 +184,7 @@ export default function ContactsPage() {
             />
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <div className="overflow-hidden glass-card">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-[11.5px] font-bold uppercase tracking-wide text-slate-400">

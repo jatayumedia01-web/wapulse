@@ -28,7 +28,7 @@ export default function TeamPage() {
       fetch("/api/analytics").then((r) => r.json()),
       fetch("/api/settings").then((r) => r.json()),
     ]);
-    setMembers(team);
+    setMembers(Array.isArray(team) ? team : []);
     setStats(analytics.agents ?? []);
     setAutoAssign(settings.autoAssign);
   }, []);
@@ -78,8 +78,8 @@ export default function TeamPage() {
           </Button>
         }
       />
-      <div className="space-y-6 p-8">
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-4">
+      <div className="space-y-6 px-8 py-7">
+        <div className="flex items-center justify-between glass-card px-6 py-4">
           <div>
             <p className="text-[14px] font-bold text-slate-900">Auto-assignment (round-robin)</p>
             <p className="text-[12.5px] text-slate-500">New conversations are automatically assigned to the agent with the lightest workload</p>
@@ -96,7 +96,7 @@ export default function TeamPage() {
           {members.map((m) => {
             const stat = stats.find((s) => s.name === m.name);
             return (
-              <div key={m.id} className="fade-up rounded-2xl border border-slate-200 bg-white p-5">
+              <div key={m.id} className="fade-up glass-card p-5">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 text-[14px] font-bold text-white">

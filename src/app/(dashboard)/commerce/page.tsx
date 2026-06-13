@@ -44,9 +44,9 @@ export default function CommercePage() {
       fetch("/api/orders").then((r) => r.json()),
       fetch("/api/contacts").then((r) => r.json()),
     ]);
-    setProducts(p);
-    setOrders(o);
-    setContacts(c);
+    setProducts(Array.isArray(p) ? p : []);
+    setOrders(Array.isArray(o) ? o : []);
+    setContacts(Array.isArray(c) ? c : []);
   }, []);
 
   useEffect(() => {
@@ -140,7 +140,7 @@ export default function CommercePage() {
         {tab === "products" ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {products.map((p) => (
-              <div key={p.id} className="fade-up rounded-2xl border border-slate-200 bg-white p-5">
+              <div key={p.id} className="fade-up glass-card p-5">
                 <div className="flex items-start justify-between">
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                     <Package size={20} />
@@ -165,7 +165,7 @@ export default function CommercePage() {
             {products.length === 0 && <p className="col-span-full py-16 text-center text-[13px] text-slate-400">No products yet</p>}
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <div className="overflow-hidden glass-card">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-[11.5px] font-bold uppercase tracking-wide text-slate-400">

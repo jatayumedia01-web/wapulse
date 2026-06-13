@@ -206,28 +206,36 @@ export default function InboxPage() {
   const detailLabels = detail?.labels.split(",").map((l) => l.trim()).filter(Boolean) ?? [];
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen overflow-hidden">
       {/* Conversation list */}
-      <div className="flex w-80 shrink-0 flex-col border-r border-slate-200 bg-white">
-        <div className="border-b border-slate-200 px-4 py-4">
-          <h1 className="text-lg font-bold text-slate-900">Team Inbox</h1>
-          <div className="relative mt-3">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+      <div className="flex w-[300px] shrink-0 flex-col border-r border-white/40" style={{ background: "rgba(255,255,255,0.82)", backdropFilter: "blur(24px)" }}>
+        {/* Header */}
+        <div className="px-4 pt-5 pb-3">
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-[17px] font-bold text-slate-900">Inbox</h1>
+            <span className="flex h-6 w-6 items-center justify-center rounded-full gradient-emerald text-[10px] font-bold text-white shadow-md shadow-emerald-200">
+              {conversations.filter(c => c.unread > 0).length || conversations.length}
+            </span>
+          </div>
+          <div className="relative">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search name or phone…"
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-8 pr-3 text-[12.5px] outline-none focus:border-emerald-400"
+              className="input-glass w-full py-2 pl-8 pr-3 text-[12.5px]"
             />
           </div>
-          <div className="mt-3 flex items-center justify-between">
-            <div className="flex gap-1.5">
+          <div className="mt-2.5 flex items-center justify-between">
+            <div className="flex gap-1">
               {FILTERS.map((f) => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                    filter === f ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                    filter === f
+                      ? "gradient-emerald text-white shadow-md shadow-emerald-200"
+                      : "text-slate-500 hover:bg-white/80"
                   }`}
                 >
                   {f === "ALL" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
@@ -236,66 +244,70 @@ export default function InboxPage() {
             </div>
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className={`flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold transition-colors ${showAdvanced || filterLabel || filterAssignee || filterUnread ? "bg-violet-100 text-violet-700" : "text-slate-400 hover:text-slate-600"}`}
+              className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all ${showAdvanced || filterLabel || filterAssignee || filterUnread ? "bg-violet-100 text-violet-700" : "text-slate-400 hover:bg-white/80"}`}
             >
               <ListFilter size={12} /> Filter
             </button>
           </div>
           {showAdvanced && (
-            <div className="mt-2.5 space-y-2 rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+            <div className="mt-2 space-y-2 glass-sm rounded-2xl p-3">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <p className="mb-1 text-[10px] font-bold uppercase text-slate-400">Label</p>
-                  <select className="w-full rounded-lg border border-slate-200 bg-white py-1 px-2 text-[11.5px] text-slate-700 outline-none" value={filterLabel} onChange={(e) => setFilterLabel(e.target.value)}>
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">Label</p>
+                  <select className="input-glass w-full py-1.5 px-2 text-[11.5px] text-slate-700" value={filterLabel} onChange={(e) => setFilterLabel(e.target.value)}>
                     <option value="">Any</option>
                     {LABEL_PRESETS.map((l) => <option key={l} value={l}>{l}</option>)}
                   </select>
                 </div>
                 <div>
-                  <p className="mb-1 text-[10px] font-bold uppercase text-slate-400">Assignee</p>
-                  <select className="w-full rounded-lg border border-slate-200 bg-white py-1 px-2 text-[11.5px] text-slate-700 outline-none" value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)}>
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">Assignee</p>
+                  <select className="input-glass w-full py-1.5 px-2 text-[11.5px] text-slate-700" value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)}>
                     <option value="">Anyone</option>
                     {team.map((t) => <option key={t.id} value={t.name}>{t.name}</option>)}
                   </select>
                 </div>
               </div>
               <label className="flex cursor-pointer items-center gap-2 text-[11.5px] text-slate-600">
-                <input type="checkbox" checked={filterUnread} onChange={(e) => setFilterUnread(e.target.checked)} />
+                <input type="checkbox" checked={filterUnread} onChange={(e) => setFilterUnread(e.target.checked)} className="rounded" />
                 Unread only
               </label>
               {(filterLabel || filterAssignee || filterUnread) && (
                 <button onClick={() => { setFilterLabel(""); setFilterAssignee(""); setFilterUnread(false); }} className="text-[11px] font-semibold text-rose-500 hover:text-rose-700">
-                  ✕ Clear filters
+                  Clear filters
                 </button>
               )}
             </div>
           )}
         </div>
-        <div className="flex-1 overflow-y-auto">
+
+        {/* List */}
+        <div className="flex-1 overflow-y-auto px-2 pb-2">
           {conversations.map((c) => (
             <button
               key={c.id}
               onClick={() => setSelectedId(c.id)}
-              className={`flex w-full items-start gap-3 border-b border-slate-100 px-4 py-3.5 text-left transition-colors ${
-                selectedId === c.id ? "bg-emerald-50/70" : "hover:bg-slate-50"
+              className={`flex w-full items-start gap-3 rounded-2xl px-3 py-3 mb-1 text-left transition-all duration-200 ${
+                selectedId === c.id
+                  ? "bg-gradient-to-r from-emerald-50 to-blue-50 shadow-sm border border-emerald-100/60"
+                  : "hover:bg-white/70"
               }`}
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-[13px] font-bold text-white">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl gradient-emerald text-[12px] font-bold text-white shadow-md shadow-emerald-200">
                 {initials(c.contact.name, c.contact.phone)}
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center justify-between">
-                  <span className="truncate text-[13.5px] font-semibold text-slate-900">
+                  <span className="truncate text-[13px] font-semibold text-slate-900">
                     {c.contact.name ?? c.contact.phone}
                   </span>
-                  <span className="ml-2 shrink-0 text-[11px] text-slate-400">{timeAgo(c.lastMessageAt)}</span>
+                  <span className="ml-2 shrink-0 text-[10.5px] text-slate-400">{timeAgo(c.lastMessageAt)}</span>
                 </span>
                 <span className="mt-0.5 flex items-center justify-between gap-2">
-                  <span className="truncate text-[12px] text-slate-500">
+                  <span className="truncate text-[12px] text-slate-500 leading-tight">
                     {c.messages[0]?.body ?? "No messages yet"}
                   </span>
                   {c.unread > 0 && (
-                    <span className="flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-bold text-white">
+                    <span className="flex h-4 min-w-[16px] shrink-0 items-center justify-center rounded-full gradient-emerald px-1 text-[9px] font-bold text-white shadow-sm">
                       {c.unread}
                     </span>
                   )}
@@ -303,7 +315,7 @@ export default function InboxPage() {
                 {(c.labels || c.assignee) && (
                   <span className="mt-1 flex flex-wrap items-center gap-1">
                     {c.assignee && <Badge tone="violet">{c.assignee}</Badge>}
-                    {c.labels.split(",").filter(Boolean).slice(0, 2).map((l) => (
+                    {c.labels.split(",").filter(Boolean).slice(0, 1).map((l) => (
                       <Badge key={l} tone="amber">{l.trim()}</Badge>
                     ))}
                   </span>
@@ -312,7 +324,9 @@ export default function InboxPage() {
             </button>
           ))}
           {conversations.length === 0 && (
-            <p className="px-4 py-10 text-center text-[13px] text-slate-400">No conversations</p>
+            <div className="py-12 text-center">
+              <p className="text-[13px] font-medium text-slate-400">No conversations</p>
+            </div>
           )}
         </div>
       </div>
@@ -320,17 +334,20 @@ export default function InboxPage() {
       {/* Thread */}
       <div className="flex min-w-0 flex-1 flex-col">
         {!detail ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 text-slate-400">
-            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
-              <Send size={24} />
-            </span>
-            <p className="text-[14px] font-medium">Select a conversation to start messaging</p>
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 text-slate-400">
+            <div className="float-anim flex h-20 w-20 items-center justify-center rounded-3xl gradient-emerald shadow-2xl shadow-emerald-200">
+              <Send size={28} className="text-white" />
+            </div>
+            <div className="text-center">
+              <p className="text-[16px] font-bold text-slate-700">Select a conversation</p>
+              <p className="mt-1 text-[13px] text-slate-400">Pick a chat from the left to start messaging</p>
+            </div>
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
+            <div className="flex items-center justify-between border-b border-white/40 bg-white/85 px-6 py-3.5 backdrop-blur-xl">
               <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-[12px] font-bold text-white">
+                <span className="flex h-9 w-9 items-center justify-center rounded-2xl gradient-emerald text-[12px] font-bold text-white shadow-md shadow-emerald-200">
                   {initials(detail.contact.name, detail.contact.phone)}
                 </span>
                 <div>
@@ -367,7 +384,7 @@ export default function InboxPage() {
                 <select
                   value={detail.assignee ?? ""}
                   onChange={(e) => patchConversation({ assignee: e.target.value || null })}
-                  className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[12px] font-semibold text-slate-600 outline-none"
+                  className="input-glass rounded-xl px-3 py-1.5 text-[12px] font-semibold text-slate-600"
                 >
                   <option value="">Unassigned</option>
                   {team.map((m) => (
@@ -388,11 +405,11 @@ export default function InboxPage() {
             </div>
 
             <div className="chat-bg flex-1 overflow-y-auto px-8 py-6">
-              <div className="mx-auto max-w-3xl space-y-2.5">
+              <div className="mx-auto max-w-3xl space-y-3">
                 {detail.messages.map((m) =>
                   m.kind === "NOTE" ? (
                     <div key={m.id} className="flex justify-center">
-                      <div className="max-w-[80%] rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 shadow-sm">
+                      <div className="max-w-[80%] glass-sm rounded-2xl border border-amber-200/60 px-4 py-2.5">
                         <p className="flex items-center gap-1.5 text-[10.5px] font-bold text-amber-700">
                           <StickyNote size={11} /> Private note · {m.author ?? "Agent"}
                         </p>
@@ -402,22 +419,22 @@ export default function InboxPage() {
                   ) : (
                     <div key={m.id} className={`flex ${m.direction === "OUT" ? "justify-end" : "justify-start"}`}>
                       <div
-                        className={`max-w-[75%] rounded-2xl px-3.5 py-2.5 shadow-sm ${
+                        className={`max-w-[75%] rounded-2xl px-4 py-3 shadow-sm ${
                           m.direction === "OUT"
-                            ? "rounded-br-md bg-[#d7f8d0] text-slate-800"
-                            : "rounded-bl-md bg-white text-slate-800"
+                            ? "rounded-br-sm bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-emerald-200"
+                            : "rounded-bl-sm bg-white/90 text-slate-800 shadow-slate-200/60 backdrop-blur-sm border border-white/60"
                         }`}
                       >
                         {m.direction === "OUT" && m.author && m.author !== "Agent" && (
-                          <span className={`mb-1 flex items-center gap-1 text-[10.5px] font-bold ${m.isAi ? "text-violet-600" : "text-emerald-700"}`}>
+                          <span className={`mb-1 flex items-center gap-1 text-[10.5px] font-bold ${m.isAi ? "text-white/80" : "text-white/80"}`}>
                             {m.isAi ? <Bot size={11} /> : <Zap size={11} />} {m.author}
                           </span>
                         )}
                         <p className="whitespace-pre-wrap text-[13.5px] leading-relaxed">{m.body}</p>
-                        <span className="mt-1 flex items-center justify-end gap-1.5">
-                          {m.direction === "IN" && m.sentiment === "negative" && <Frown size={12} className="text-rose-500" />}
+                        <span className="mt-1.5 flex items-center justify-end gap-1.5">
+                          {m.direction === "IN" && m.sentiment === "negative" && <Frown size={12} className="text-rose-400" />}
                           {m.direction === "IN" && m.sentiment === "positive" && <Smile size={12} className="text-emerald-500" />}
-                          <span className="text-[10.5px] text-slate-400">
+                          <span className={`text-[10px] ${m.direction === "OUT" ? "text-white/70" : "text-slate-400"}`}>
                             {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </span>
                           {m.direction === "OUT" && <StatusTicks status={m.status} />}
@@ -431,12 +448,12 @@ export default function InboxPage() {
             </div>
 
             {suggestions.length > 0 && (
-              <div className="flex gap-2 overflow-x-auto border-t border-slate-200 bg-violet-50/60 px-6 py-2.5">
+              <div className="flex gap-2 overflow-x-auto border-t border-white/40 bg-violet-50/60 px-6 py-2.5 backdrop-blur-sm">
                 {suggestions.map((s, i) => (
                   <button
                     key={i}
                     onClick={() => { setDraft(s); setSuggestions([]); }}
-                    className="shrink-0 rounded-full border border-violet-200 bg-white px-3 py-1.5 text-[12px] font-medium text-violet-700 transition-colors hover:bg-violet-100"
+                    className="shrink-0 rounded-2xl border border-violet-200 bg-white/80 px-3.5 py-1.5 text-[12px] font-medium text-violet-700 shadow-sm backdrop-blur-sm transition-all hover:bg-violet-50 hover:-translate-y-px"
                   >
                     {s}
                   </button>
@@ -445,41 +462,41 @@ export default function InboxPage() {
             )}
 
             {showQuick && filteredQuick.length > 0 && (
-              <div className="border-t border-slate-200 bg-white px-6 py-2">
-                <p className="mb-1.5 text-[10.5px] font-bold uppercase tracking-wide text-slate-400">Quick replies</p>
-                <div className="max-h-36 space-y-1 overflow-y-auto">
+              <div className="border-t border-white/40 bg-white/80 px-5 py-2.5 backdrop-blur-sm">
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Quick replies</p>
+                <div className="max-h-36 space-y-0.5 overflow-y-auto">
                   {filteredQuick.map((q) => (
                     <button
                       key={q.id}
                       onClick={() => { setDraft(q.body); setShowQuick(false); }}
-                      className="flex w-full items-baseline gap-2 rounded-lg px-2.5 py-1.5 text-left hover:bg-emerald-50"
+                      className="flex w-full items-baseline gap-2.5 rounded-xl px-3 py-2 text-left transition-all hover:bg-emerald-50"
                     >
-                      <span className="shrink-0 font-mono text-[11.5px] font-bold text-emerald-600">/{q.shortcut}</span>
-                      <span className="truncate text-[12.5px] text-slate-600">{q.body}</span>
+                      <span className="shrink-0 font-mono text-[11px] font-bold text-emerald-600">{q.shortcut}</span>
+                      <span className="truncate text-[12px] text-slate-600">{q.body}</span>
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            <div className={`border-t px-6 py-4 ${noteMode ? "border-amber-300 bg-amber-50/60" : "border-slate-200 bg-white"}`}>
+            <div className={`border-t px-5 py-4 backdrop-blur-xl ${noteMode ? "border-amber-200/60 bg-amber-50/60" : "border-white/40 bg-white/80"}`}>
               <div className="flex items-end gap-2">
                 <button
                   onClick={getSuggestions}
                   disabled={loadingSuggest}
                   title="AI reply suggestions"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600 transition-colors hover:bg-violet-200 disabled:opacity-50"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 border border-violet-100 transition-all hover:bg-violet-100 hover:shadow-md disabled:opacity-50"
                 >
-                  <Sparkles size={17} className={loadingSuggest ? "animate-pulse" : ""} />
+                  <Sparkles size={16} className={loadingSuggest ? "animate-pulse" : ""} />
                 </button>
                 <button
                   onClick={() => setNoteMode(!noteMode)}
                   title="Private note (not sent to customer)"
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                    noteMode ? "bg-amber-400 text-white" : "bg-amber-100 text-amber-600 hover:bg-amber-200"
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-all ${
+                    noteMode ? "gradient-amber text-white border-amber-300 shadow-md shadow-amber-200" : "bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100"
                   }`}
                 >
-                  <StickyNote size={17} />
+                  <StickyNote size={16} />
                 </button>
                 <textarea
                   value={draft}
@@ -492,10 +509,10 @@ export default function InboxPage() {
                   }}
                   rows={1}
                   placeholder={noteMode ? "Write a private note for your team…" : "Type a message… ('/' for quick replies, Enter to send)"}
-                  className={`${inputCls} max-h-32 resize-none ${noteMode ? "border-amber-300 bg-white" : ""}`}
+                  className="input-glass flex-1 max-h-32 resize-none px-4 py-2.5 text-[13.5px]"
                 />
-                <Button onClick={() => sendMessage(draft)} disabled={sending || !draft.trim()} className="h-10">
-                  <Send size={15} /> {noteMode ? "Add Note" : "Send"}
+                <Button onClick={() => sendMessage(draft)} disabled={sending || !draft.trim()} className="h-10 rounded-2xl px-5">
+                  <Send size={15} /> {noteMode ? "Note" : "Send"}
                 </Button>
               </div>
               <div className="mt-2.5 flex items-center gap-2">
@@ -504,8 +521,8 @@ export default function InboxPage() {
                   value={simulateText}
                   onChange={(e) => setSimulateText(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && simulateInbound()}
-                  placeholder="Demo: simulate a customer message (try 'menu' to trigger the chatbot flow)"
-                  className="flex-1 rounded-lg border border-dashed border-amber-300 bg-amber-50/50 px-3 py-1.5 text-[12px] text-slate-700 outline-none placeholder:text-amber-600/60 focus:border-amber-400"
+                  placeholder="Demo: simulate a customer message…"
+                  className="flex-1 input-glass px-3 py-1.5 text-[12px] border-dashed border-amber-300"
                 />
               </div>
             </div>
@@ -515,9 +532,9 @@ export default function InboxPage() {
 
       {/* Contact panel */}
       {detail && (
-        <div className="hidden w-72 shrink-0 flex-col border-l border-slate-200 bg-white xl:flex">
-          <div className="flex flex-col items-center border-b border-slate-200 px-6 py-7">
-            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-xl font-bold text-white">
+        <div className="hidden w-[260px] shrink-0 flex-col border-l border-white/40 xl:flex" style={{ background: "rgba(255,255,255,0.82)", backdropFilter: "blur(24px)" }}>
+          <div className="flex flex-col items-center border-b border-white/40 px-5 py-6">
+            <span className="flex h-14 w-14 items-center justify-center rounded-3xl gradient-emerald text-[18px] font-bold text-white shadow-xl shadow-emerald-200">
               {initials(detail.contact.name, detail.contact.phone)}
             </span>
             <p className="mt-3 text-[15px] font-bold text-slate-900">{detail.contact.name ?? "Unknown"}</p>

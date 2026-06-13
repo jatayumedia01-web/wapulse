@@ -35,7 +35,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    <div className="flex min-h-screen items-center justify-center px-4" style={{ background: "linear-gradient(135deg,#f0f4ff 0%,#e8eeff 40%,#f5f3ff 70%,#ecfdf5 100%)" }}>
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 flex flex-col items-center gap-3">
@@ -48,7 +48,7 @@ function LoginForm() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+        <form onSubmit={handleSubmit} className="glass-card p-8">
           <div className="space-y-4">
             <div>
               <label className="mb-1.5 block text-[13px] font-semibold text-slate-700">Email address</label>
@@ -58,7 +58,7 @@ function LoginForm() {
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="you@company.com"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-[14px] outline-none transition-colors focus:border-emerald-400 focus:bg-white"
+                className="input-glass w-full px-4 py-2.5 text-[14px]"
               />
             </div>
             <div>
@@ -75,7 +75,7 @@ function LoginForm() {
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   placeholder="••••••••"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 pr-10 text-[14px] outline-none transition-colors focus:border-emerald-400 focus:bg-white"
+                  className="input-glass w-full px-4 py-2.5 pr-10 text-[14px]"
                 />
                 <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                   {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -91,7 +91,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 text-[14px] font-semibold text-white transition-colors hover:bg-emerald-600 disabled:opacity-60"
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl gradient-emerald py-3 text-[14px] font-semibold text-white shadow-lg shadow-emerald-200/70 transition-all hover:-translate-y-px hover:shadow-emerald-300/70 disabled:opacity-60"
           >
             {loading ? <Loader2 size={16} className="animate-spin" /> : null}
             {loading ? "Signing in…" : "Sign in"}

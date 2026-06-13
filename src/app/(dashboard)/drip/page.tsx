@@ -62,9 +62,9 @@ export default function DripPage() {
       fetch("/api/templates").then((r) => r.json()),
       fetch("/api/contacts").then((r) => r.json()),
     ]);
-    setSequences(s);
-    setTemplates(t.filter((x: Template) => x.status === "APPROVED"));
-    setContacts(c);
+    setSequences(Array.isArray(s) ? s : []);
+    setTemplates(Array.isArray(t) ? t.filter((x: Template) => x.status === "APPROVED") : []);
+    setContacts(Array.isArray(c) ? c : []);
   }, []);
 
   useEffect(() => { load(); }, [load]);

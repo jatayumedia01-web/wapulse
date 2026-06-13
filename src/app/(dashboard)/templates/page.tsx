@@ -93,7 +93,8 @@ export default function TemplatesPage() {
   const [buttons, setButtons] = useState<TemplateButton[]>([]);
 
   const load = useCallback(async () => {
-    setTemplates(await (await fetch("/api/templates")).json());
+    const d = await (await fetch("/api/templates")).json();
+    setTemplates(Array.isArray(d) ? d : []);
   }, []);
 
   useEffect(() => {
@@ -135,7 +136,7 @@ export default function TemplatesPage() {
       />
       <div className="grid grid-cols-1 gap-5 p-8 md:grid-cols-2 xl:grid-cols-3">
         {templates.map((t) => (
-          <div key={t.id} className="fade-up overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <div key={t.id} className="fade-up overflow-hidden glass-card">
             <div className="flex items-start justify-between px-5 pt-4">
               <div>
                 <p className="font-mono text-[13px] font-bold text-slate-900">{t.name}</p>

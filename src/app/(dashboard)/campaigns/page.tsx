@@ -60,8 +60,8 @@ export default function CampaignsPage() {
       fetch("/api/campaigns").then((r) => r.json()),
       fetch("/api/templates").then((r) => r.json()),
     ]);
-    setCampaigns(c);
-    setTemplates(t.filter((x: Template) => x.status === "APPROVED"));
+    setCampaigns(Array.isArray(c) ? c : []);
+    setTemplates(Array.isArray(t) ? t.filter((x: Template) => x.status === "APPROVED") : []);
   }, []);
 
   useEffect(() => {
@@ -118,7 +118,7 @@ export default function CampaignsPage() {
       />
       <div className="space-y-4 p-8">
         {campaigns.map((c) => (
-          <div key={c.id} className="fade-up rounded-2xl border border-slate-200 bg-white p-6">
+          <div key={c.id} className="fade-up glass-card p-6">
             <div className="mb-5 flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2.5">

@@ -40,8 +40,8 @@ export default function AutomationPage() {
       fetch("/api/automations").then((x) => x.json()),
       fetch("/api/quick-replies").then((x) => x.json()),
     ]);
-    setRules(r);
-    setQuickReplies(q);
+    setRules(Array.isArray(r) ? r : []);
+    setQuickReplies(Array.isArray(q) ? q : []);
   }, []);
 
   async function createQuickReply() {
@@ -162,7 +162,7 @@ export default function AutomationPage() {
         {rules.length === 0 && <p className="py-16 text-center text-[13px] text-slate-400">No automation rules yet</p>}
 
         {/* Quick replies */}
-        <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6">
+        <div className="mt-8 glass-card p-6">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="flex items-center gap-2 text-[15px] font-bold text-slate-900">
