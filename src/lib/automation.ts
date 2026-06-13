@@ -43,7 +43,7 @@ async function sendFlowNode(conversationId: string, phone: string, flowId: strin
 }
 
 async function runFlowEngine(
-  conversation: { id: string; flowState: string; contact: { phone: string } },
+  conversation: { id: string; flowState: string; orgId: string; contact: { phone: string } },
   text: string
 ): Promise<boolean> {
   const state = JSON.parse(conversation.flowState || "{}") as { flowId?: string; nodeId?: string };
@@ -66,7 +66,7 @@ async function runFlowEngine(
     await prisma.conversation.update({ where: { id: conversation.id }, data: { flowState: "{}" } });
   }
 
-  const flows = await prisma.flow.findMany({ where: { enabled: true } });
+  const flows = await prisma.flow.findMany({ where: { enabled: true, orgId: conversation.orgId } });
   for (const flow of flows) {
     const keywords = flow.keywords.split(",").map((k) => k.trim().toLowerCase()).filter(Boolean);
     if (keywords.some((k) => text.toLowerCase().includes(k))) {
@@ -97,11 +97,11 @@ export async function processInbound(conversationId: string): Promise<void> {
 
   // Opt-out / opt-in handling — highest priority
   if (isOptOut(text)) {
-    await handleOptOut(conversation.contact.phone, conversationId);
+    await handleOptOut(conversation.contact.phone, conversationId, conversation.contact.id);
     return;
   }
   if (isOptIn(text)) {
-    await handleOptIn(conversation.contact.phone, conversationId);
+    await handleOptIn(conversation.contact.phone, conversationId, conversation.contact.id);
     return;
   }
 
@@ -109,7 +109,7 @@ export async function processInbound(conversationId: string): Promise<void> {
   if (await runFlowEngine(conversation, text)) return;
 
   const rules = await prisma.automationRule.findMany({
-    where: { enabled: true },
+    where: { enabled: true, orgId: conversation.orgId },
     orderBy: { priority: "desc" },
   });
 
@@ -137,7 +137,7 @@ export async function processInbound(conversationId: string): Promise<void> {
     }
   }
 
-  const settings = await getSettings();
+  const settings = await getSettings(conversation.orgId);
   if (!replyBody && settings.awayEnabled && !withinWorkingHours(settings)) {
     const recentAway = await prisma.message.findFirst({
       where: { conversationId, direction: "OUT", author: "Away Message", createdAt: { gte: new Date(Date.now() - 6 * 3600000) } },
@@ -182,13 +182,13 @@ export async function processInbound(conversationId: string): Promise<void> {
   dispatchEvent("message.sent", { conversationId, to: conversation.contact.phone, body: replyBody, automated: true }).catch(() => {});
 }
 
-async function pickAssignee(): Promise<string | null> {
-  const agents = await prisma.teamMember.findMany();
+async function pickAssignee(orgId: string): Promise<string | null> {
+  const agents = await prisma.teamMember.findMany({ where: { orgId } });
   if (!agents.length) return null;
   const loads = await Promise.all(
     agents.map(async (a) => ({
       name: a.name,
-      load: await prisma.conversation.count({ where: { assignee: a.name, status: "OPEN" } }),
+      load: await prisma.conversation.count({ where: { orgId, assignee: a.name, status: "OPEN" } }),
     }))
   );
   return loads.sort((a, b) => a.load - b.load)[0].name;
@@ -197,22 +197,30 @@ async function pickAssignee(): Promise<string | null> {
 export async function recordInbound(
   phone: string,
   name: string | null,
-  body: string
+  body: string,
+  orgIdHint?: string
 ): Promise<{ conversationId: string; messageId: string }> {
+  // Resolve orgId: use hint (from webhook) or fall back to first org
+  let orgId = orgIdHint;
+  if (!orgId) {
+    const org = await prisma.organization.findFirst();
+    orgId = org?.id ?? "";
+  }
+
   const contact = await prisma.contact.upsert({
-    where: { phone },
-    create: { phone, name },
+    where: { orgId_phone: { orgId, phone } },
+    create: { orgId, phone, name },
     update: name ? { name } : {},
   });
 
   let conversation = await prisma.conversation.findFirst({
-    where: { contactId: contact.id, status: { not: "RESOLVED" } },
+    where: { orgId, contactId: contact.id, status: { not: "RESOLVED" } },
     orderBy: { lastMessageAt: "desc" },
   });
   if (!conversation) {
-    const settings = await getSettings();
-    const assignee = settings.autoAssign ? await pickAssignee() : null;
-    conversation = await prisma.conversation.create({ data: { contactId: contact.id, assignee } });
+    const settings = await getSettings(orgId);
+    const assignee = settings.autoAssign ? await pickAssignee(orgId) : null;
+    conversation = await prisma.conversation.create({ data: { orgId, contactId: contact.id, assignee } });
   }
 
   const message = await prisma.message.create({

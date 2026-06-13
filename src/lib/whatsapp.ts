@@ -41,13 +41,13 @@ async function graphPost(path: string, token: string, payload: unknown): Promise
   }
 }
 
-async function liveCredentials() {
-  const s = await getSettings();
+async function liveCredentials(orgId?: string) {
+  const s = orgId ? await getSettings(orgId) : await getSettings("_fallback");
   return { live: !s.demoMode && !!s.accessToken && !!s.phoneNumberId, token: s.accessToken, phoneNumberId: s.phoneNumberId };
 }
 
-export async function sendText(to: string, body: string): Promise<SendResult> {
-  const { live, token, phoneNumberId } = await liveCredentials();
+export async function sendText(to: string, body: string, orgId?: string): Promise<SendResult> {
+  const { live, token, phoneNumberId } = await liveCredentials(orgId);
   if (!live) return { ok: true, waMessageId: fakeId(), simulated: true };
   return graphPost(`${phoneNumberId}/messages`, token, {
     messaging_product: "whatsapp",
@@ -62,9 +62,10 @@ export async function sendTemplate(
   to: string,
   templateName: string,
   language: string,
-  components: TemplateComponent[] = []
+  components: TemplateComponent[] = [],
+  orgId?: string
 ): Promise<SendResult> {
-  const { live, token, phoneNumberId } = await liveCredentials();
+  const { live, token, phoneNumberId } = await liveCredentials(orgId);
   if (!live) return { ok: true, waMessageId: fakeId(), simulated: true };
   return graphPost(`${phoneNumberId}/messages`, token, {
     messaging_product: "whatsapp",
@@ -77,9 +78,10 @@ export async function sendTemplate(
 export async function sendInteractiveButtons(
   to: string,
   body: string,
-  buttons: Array<{ id: string; title: string }>
+  buttons: Array<{ id: string; title: string }>,
+  orgId?: string
 ): Promise<SendResult> {
-  const { live, token, phoneNumberId } = await liveCredentials();
+  const { live, token, phoneNumberId } = await liveCredentials(orgId);
   if (!live) return { ok: true, waMessageId: fakeId(), simulated: true };
   return graphPost(`${phoneNumberId}/messages`, token, {
     messaging_product: "whatsapp",
@@ -97,9 +99,10 @@ export async function sendInteractiveList(
   to: string,
   body: string,
   buttonLabel: string,
-  sections: Array<{ title: string; rows: Array<{ id: string; title: string; description?: string }> }>
+  sections: Array<{ title: string; rows: Array<{ id: string; title: string; description?: string }> }>,
+  orgId?: string
 ): Promise<SendResult> {
-  const { live, token, phoneNumberId } = await liveCredentials();
+  const { live, token, phoneNumberId } = await liveCredentials(orgId);
   if (!live) return { ok: true, waMessageId: fakeId(), simulated: true };
   return graphPost(`${phoneNumberId}/messages`, token, {
     messaging_product: "whatsapp",
@@ -113,8 +116,8 @@ export async function sendInteractiveList(
   });
 }
 
-export async function markAsRead(waMessageId: string): Promise<void> {
-  const { live, token, phoneNumberId } = await liveCredentials();
+export async function markAsRead(waMessageId: string, orgId?: string): Promise<void> {
+  const { live, token, phoneNumberId } = await liveCredentials(orgId);
   if (!live) return;
   await graphPost(`${phoneNumberId}/messages`, token, {
     messaging_product: "whatsapp",

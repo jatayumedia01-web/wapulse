@@ -66,9 +66,9 @@ export async function processDueSteps(): Promise<number> {
 
     // Record in conversation
     let conversation = await prisma.conversation.findFirst({
-      where: { contactId: contact.id, status: { not: "RESOLVED" } },
+      where: { orgId: contact.orgId, contactId: contact.id, status: { not: "RESOLVED" } },
     });
-    if (!conversation) conversation = await prisma.conversation.create({ data: { contactId: contact.id } });
+    if (!conversation) conversation = await prisma.conversation.create({ data: { orgId: contact.orgId, contactId: contact.id } });
     await prisma.message.create({
       data: {
         conversationId: conversation.id,

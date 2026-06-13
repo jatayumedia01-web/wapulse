@@ -1,17 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { requireOrg } from "@/lib/api-auth";
 
-export async function GET() {
-  return NextResponse.json(await prisma.customField.findMany({ orderBy: { createdAt: "asc" } }));
+export async function GET(req: NextRequest) {
+  const auth = await requireOrg(req);
+  if ("error" in auth) return auth.error;
+  const { orgId } = auth.session;
+  return NextResponse.json(await prisma.customField.findMany({ where: { orgId }, orderBy: { createdAt: "asc" } }));
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireOrg(req);
+  if ("error" in auth) return auth.error;
+  const { orgId } = auth.session;
+
   const body = await req.json();
   if (!body.name?.trim()) return NextResponse.json({ error: "Name required" }, { status: 400 });
   const key = body.name.toLowerCase().replace(/[^a-z0-9_]/g, "_");
   try {
     const field = await prisma.customField.create({
-      data: { name: body.name, key, type: body.type ?? "text", options: JSON.stringify(body.options ?? []) },
+      data: { orgId, name: body.name, key, type: body.type ?? "text", options: JSON.stringify(body.options ?? []) },
     });
     return NextResponse.json(field, { status: 201 });
   } catch {
@@ -20,6 +28,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const auth = await requireOrg(req);
+  if ("error" in auth) return auth.error;
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
   await prisma.customField.delete({ where: { id } });

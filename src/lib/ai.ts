@@ -74,8 +74,8 @@ async function openaiChat(apiKey: string, system: string, history: ChatTurn[]): 
   }
 }
 
-export async function generateAiReply(history: ChatTurn[], contactName?: string): Promise<{ reply: string; engine: "openai" | "builtin" }> {
-  const settings = await getSettings();
+export async function generateAiReply(history: ChatTurn[], contactName?: string, orgId?: string): Promise<{ reply: string; engine: "openai" | "builtin" }> {
+  const settings = await getSettings(orgId);
   if (settings.openaiApiKey) {
     const system = `${settings.aiPersona}\nBusiness: ${settings.businessName}. Keep replies short (under 60 words), warm and WhatsApp-friendly.`;
     const reply = await openaiChat(settings.openaiApiKey, system, history);
@@ -84,8 +84,8 @@ export async function generateAiReply(history: ChatTurn[], contactName?: string)
   return { reply: builtInReply(history, contactName), engine: "builtin" };
 }
 
-export async function suggestReplies(history: ChatTurn[]): Promise<string[]> {
-  const settings = await getSettings();
+export async function suggestReplies(history: ChatTurn[], orgId?: string): Promise<string[]> {
+  const settings = await getSettings(orgId);
   if (settings.openaiApiKey) {
     const reply = await openaiChat(
       settings.openaiApiKey,

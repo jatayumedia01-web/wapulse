@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { requireOrg } from "@/lib/api-auth";
 
 export async function GET(req: NextRequest) {
+  const auth = await requireOrg(req);
+  if ("error" in auth) return auth.error;
+  const { orgId } = auth.session;
+
   const status = req.nextUrl.searchParams.get("status");
   const label = req.nextUrl.searchParams.get("label");
   const assignee = req.nextUrl.searchParams.get("assignee");
@@ -10,17 +15,12 @@ export async function GET(req: NextRequest) {
 
   const conversations = await prisma.conversation.findMany({
     where: {
+      orgId,
       ...(status && status !== "ALL" ? { status } : {}),
       ...(label ? { labels: { contains: label } } : {}),
       ...(assignee ? { assignee } : {}),
       ...(unread === "1" ? { unread: { gt: 0 } } : {}),
-      ...(q
-        ? {
-            contact: {
-              OR: [{ name: { contains: q } }, { phone: { contains: q } }],
-            },
-          }
-        : {}),
+      ...(q ? { contact: { OR: [{ name: { contains: q } }, { phone: { contains: q } }] } } : {}),
     },
     include: {
       contact: true,

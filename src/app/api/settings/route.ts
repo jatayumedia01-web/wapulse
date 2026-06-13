@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, getSettings } from "@/lib/db";
+import { prisma } from "@/lib/db";
+import { requireOrg } from "@/lib/api-auth";
 
-export async function GET() {
-  const settings = await getSettings();
+async function getOrgSettings(orgId: string) {
+  return prisma.setting.upsert({
+    where: { orgId },
+    create: { orgId },
+    update: {},
+  });
+}
+
+export async function GET(req: NextRequest) {
+  const auth = await requireOrg(req);
+  if ("error" in auth) return auth.error;
+  const { orgId } = auth.session;
+  const settings = await getOrgSettings(orgId);
   return NextResponse.json({
     ...settings,
     accessToken: settings.accessToken ? "••••" + settings.accessToken.slice(-4) : "",
@@ -11,8 +23,12 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
+  const auth = await requireOrg(req);
+  if ("error" in auth) return auth.error;
+  const { orgId } = auth.session;
+
   const body = await req.json();
-  await getSettings();
+  await getOrgSettings(orgId);
   const data: Record<string, unknown> = {};
   for (const key of ["businessName", "phoneNumberId", "wabaId", "verifyToken", "aiPersona", "awayMessage", "workStart", "workEnd", "workDays"]) {
     if (typeof body[key] === "string") data[key] = body[key];
@@ -20,11 +36,11 @@ export async function PATCH(req: NextRequest) {
   for (const key of ["awayEnabled", "autoAssign"]) {
     if (typeof body[key] === "boolean") data[key] = body[key];
   }
-  // Secrets: only update when a real (non-masked) value is provided
   for (const key of ["accessToken", "openaiApiKey"]) {
     if (typeof body[key] === "string" && !body[key].startsWith("••••")) data[key] = body[key];
   }
   if (typeof body.demoMode === "boolean") data.demoMode = body.demoMode;
-  const settings = await prisma.setting.update({ where: { id: 1 }, data });
+  if (typeof body.onboarded === "boolean") data.onboarded = body.onboarded;
+  const settings = await prisma.setting.update({ where: { orgId }, data });
   return NextResponse.json({ ok: true, demoMode: settings.demoMode });
 }

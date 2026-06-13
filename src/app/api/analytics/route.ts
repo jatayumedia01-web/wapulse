@@ -1,25 +1,30 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { requireOrg } from "@/lib/api-auth";
 import { subDays, startOfDay, format } from "date-fns";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = await requireOrg(req);
+  if ("error" in auth) return auth.error;
+  const { orgId } = auth.session;
+
   const since = subDays(new Date(), 6);
 
   const [totalContacts, openConversations, totalMessages, messages, campaigns, sentMessages, deliveredOrRead, readCount, aiMessages, negativeCount] =
     await Promise.all([
-      prisma.contact.count(),
-      prisma.conversation.count({ where: { status: "OPEN" } }),
-      prisma.message.count(),
+      prisma.contact.count({ where: { orgId } }),
+      prisma.conversation.count({ where: { orgId, status: "OPEN" } }),
+      prisma.message.count({ where: { conversation: { orgId } } }),
       prisma.message.findMany({
-        where: { createdAt: { gte: startOfDay(since) } },
+        where: { conversation: { orgId }, createdAt: { gte: startOfDay(since) } },
         select: { createdAt: true, direction: true },
       }),
-      prisma.campaign.findMany({ orderBy: { createdAt: "desc" }, take: 5, include: { template: true } }),
-      prisma.message.count({ where: { direction: "OUT" } }),
-      prisma.message.count({ where: { direction: "OUT", status: { in: ["DELIVERED", "READ"] } } }),
-      prisma.message.count({ where: { direction: "OUT", status: "READ" } }),
-      prisma.message.count({ where: { isAi: true } }),
-      prisma.message.count({ where: { sentiment: "negative" } }),
+      prisma.campaign.findMany({ where: { orgId }, orderBy: { createdAt: "desc" }, take: 5, include: { template: true } }),
+      prisma.message.count({ where: { conversation: { orgId }, direction: "OUT" } }),
+      prisma.message.count({ where: { conversation: { orgId }, direction: "OUT", status: { in: ["DELIVERED", "READ"] } } }),
+      prisma.message.count({ where: { conversation: { orgId }, direction: "OUT", status: "READ" } }),
+      prisma.message.count({ where: { conversation: { orgId }, isAi: true } }),
+      prisma.message.count({ where: { conversation: { orgId }, sentiment: "negative" } }),
     ]);
 
   const days: Record<string, { date: string; inbound: number; outbound: number }> = {};
@@ -35,16 +40,15 @@ export async function GET() {
     }
   }
 
-  // Agent performance: open/resolved load + avg first response time
-  const agents = await prisma.teamMember.findMany();
+  const agents = await prisma.teamMember.findMany({ where: { orgId } });
   const agentStats = await Promise.all(
     agents.map(async (a) => {
       const [open, resolved] = await Promise.all([
-        prisma.conversation.count({ where: { assignee: a.name, status: "OPEN" } }),
-        prisma.conversation.count({ where: { assignee: a.name, status: "RESOLVED" } }),
+        prisma.conversation.count({ where: { orgId, assignee: a.name, status: "OPEN" } }),
+        prisma.conversation.count({ where: { orgId, assignee: a.name, status: "RESOLVED" } }),
       ]);
       const convs = await prisma.conversation.findMany({
-        where: { assignee: a.name },
+        where: { orgId, assignee: a.name },
         include: { messages: { where: { kind: "MESSAGE" }, orderBy: { createdAt: "asc" }, take: 10 } },
         take: 50,
       });

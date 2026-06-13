@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -19,6 +20,8 @@ import {
   Layers,
   ClipboardList,
   Columns,
+  CreditCard,
+  Shield,
 } from "lucide-react";
 
 const NAV = [
@@ -49,10 +52,22 @@ const NAV = [
     { href: "/developers", label: "Developer API", icon: Code2 },
     { href: "/settings", label: "Settings", icon: Settings },
   ]},
+  { group: "Account", items: [
+    { href: "/billing", label: "Billing & Plans", icon: CreditCard },
+    { href: "/admin", label: "Super Admin", icon: Shield },
+  ]},
 ];
+
+type Me = { name: string; email: string; role: string; org: { name: string; plan: string } };
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [me, setMe] = useState<Me | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me").then((r) => r.ok ? r.json() : null).then(setMe).catch(() => {});
+  }, []);
+
   return (
     <aside className="flex h-screen w-60 shrink-0 flex-col bg-[#0c1b1e] text-slate-300">
       <div className="flex items-center gap-2.5 px-5 py-5">
@@ -90,11 +105,25 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="mx-3 mb-4 rounded-xl bg-white/5 p-3.5">
-        <p className="text-[12px] font-semibold text-white">Demo Mode Active</p>
-        <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
-          Messages are simulated. Connect your Meta credentials in Settings to go live.
-        </p>
+      <div className="mx-3 mb-4 space-y-2">
+        {me && (
+          <div className="rounded-xl bg-white/5 p-3.5">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-[11px] font-bold text-white">
+                {me.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-[12px] font-semibold text-white">{me.name}</p>
+                <p className="truncate text-[10.5px] text-slate-400">{me.org?.name} · <span className="font-semibold text-emerald-400">{me.org?.plan}</span></p>
+              </div>
+            </div>
+          </div>
+        )}
+        <button
+          onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); window.location.href = "/auth/login"; }}
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/10 py-2 text-[12.5px] font-semibold text-slate-400 hover:bg-white/5 hover:text-white transition-colors">
+          Sign out
+        </button>
       </div>
     </aside>
   );
