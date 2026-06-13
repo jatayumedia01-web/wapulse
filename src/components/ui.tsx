@@ -111,12 +111,12 @@ export function PageHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="mb-7 flex items-start justify-between">
+    <div className="flex items-start justify-between px-8 pt-8 pb-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
+        <h1 className="text-[22px] font-bold text-slate-800">{title}</h1>
+        {subtitle && <p className="mt-1 text-[13px] text-slate-500">{subtitle}</p>}
       </div>
-      {action && <div>{action}</div>}
+      {action && <div className="flex-shrink-0">{action}</div>}
     </div>
   );
 }

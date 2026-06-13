@@ -85,10 +85,10 @@ export default function DashboardPage() {
   useEffect(() => {
     Promise.all([
       fetch("/api/analytics").then(r => r.ok ? r.json() : {}),
-    ]).then(([data]) => {
-      if (data?.totals) setStats(data.totals);
-      if (data?.recentCampaigns) setCampaigns(data.recentCampaigns.slice(0, 4));
-      if (data?.timeline) setChart(data.timeline.map((t: {date:string;inbound:number;outbound:number}) => ({ date: t.date, outbound: t.outbound, inbound: t.inbound })));
+    ]).then(([data]: [Record<string, unknown>]) => {
+      if (data?.totals) setStats(data.totals as Stats);
+      if (data?.recentCampaigns) setCampaigns((data.recentCampaigns as Campaign[]).slice(0, 4));
+      if (data?.timeline) setChart((data.timeline as {date:string;inbound:number;outbound:number}[]).map((t) => ({ date: t.date, outbound: t.outbound, inbound: t.inbound })));
       setLoading(false);
     }).catch(() => setLoading(false));
   }, []);

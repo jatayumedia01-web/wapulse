@@ -105,8 +105,17 @@ export default function CampaignsPage() {
     load();
   }
 
+  const STATUS_BG: Record<string, string> = {
+    RUNNING: "linear-gradient(135deg,#10b981,#059669)",
+    SCHEDULED: "linear-gradient(135deg,#3b82f6,#06b6d4)",
+    COMPLETED: "linear-gradient(135deg,#6366f1,#8b5cf6)",
+    DRAFT: "linear-gradient(135deg,#94a3b8,#64748b)",
+    FAILED: "linear-gradient(135deg,#ef4444,#f97316)",
+    PAUSED: "linear-gradient(135deg,#f59e0b,#f97316)",
+  };
+
   return (
-    <div>
+    <div className="min-h-screen">
       <PageHeader
         title="Broadcast Campaigns"
         subtitle="Send approved templates to targeted audience segments"
@@ -116,52 +125,61 @@ export default function CampaignsPage() {
           </Button>
         }
       />
-      <div className="space-y-4 p-8">
+      <div className="space-y-4 px-8 pb-8">
         {campaigns.map((c) => (
-          <div key={c.id} className="fade-up bg-white/90 backdrop-blur border border-white/80 shadow-lg shadow-indigo-50 rounded-2xl p-6">
-            <div className="mb-5 flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-2.5">
-                  <h2 className="text-[15px] font-bold text-slate-900">{c.name}</h2>
-                  <Badge tone={statusTone(c.status)}>{c.status}</Badge>
+          <div key={c.id} className="overflow-hidden rounded-2xl shadow-md transition-all hover:shadow-lg"
+            style={{ background: "rgba(255,255,255,0.95)", border: "1px solid rgba(99,102,241,0.08)" }}>
+            {/* Color strip header */}
+            <div className="flex items-center justify-between px-6 py-4"
+              style={{ background: STATUS_BG[c.status] || STATUS_BG.DRAFT, borderBottom: "none" }}>
+              <div className="flex items-center gap-3">
+                <Rocket size={18} className="text-white" strokeWidth={2} />
+                <div>
+                  <h2 className="text-[15px] font-bold text-white">{c.name}</h2>
+                  <p className="text-[11.5px] text-white/75">
+                    Template: {c.template.name}
+                    {c.audienceTag ? ` · Tag: ${c.audienceTag}` : " · All opted-in"}
+                    {c.failed > 0 && ` · ${c.failed} failed`}
+                  </p>
                 </div>
-                <p className="mt-1 text-[12.5px] text-slate-500">
-                  Template: <span className="font-mono font-semibold">{c.template.name}</span>
-                  {" · "}Audience:{" "}
-                  {c.retargetOfId ? (
-                    <Badge tone="violet">retarget: read-not-replied</Badge>
-                  ) : c.audienceTag ? (
-                    <Badge tone="blue">{c.audienceTag}</Badge>
-                  ) : (
-                    "All opted-in contacts"
-                  )}
-                  {c.scheduledAt && c.status === "SCHEDULED" && (
-                    <span className="ml-1 inline-flex items-center gap-1 text-violet-600">
-                      <CalendarClock size={12} /> {new Date(c.scheduledAt).toLocaleString()}
-                    </span>
-                  )}
-                  {c.failed > 0 && <span className="text-rose-500"> · {c.failed} failed</span>}
-                </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
+                  {c.status}
+                </span>
+                {c.scheduledAt && c.status === "SCHEDULED" && (
+                  <span className="flex items-center gap-1 text-[11px] text-white/80">
+                    <CalendarClock size={12} /> {new Date(c.scheduledAt).toLocaleString()}
+                  </span>
+                )}
                 {c.status === "COMPLETED" && (
-                  <Button variant="secondary" onClick={() => openRetarget(c)}>
-                    <RefreshCcw size={14} /> Retarget
+                  <Button variant="ghost" onClick={() => openRetarget(c)} className="bg-white/20 text-white hover:bg-white/30 border-0">
+                    <RefreshCcw size={13} /> Retarget
                   </Button>
                 )}
                 {(c.status === "DRAFT" || c.status === "SCHEDULED") && (
-                  <Button onClick={() => launch(c.id)} disabled={launching === c.id}>
-                    {launching === c.id ? <Loader2 size={15} className="animate-spin" /> : <Rocket size={15} />}
+                  <Button variant="ghost" onClick={() => launch(c.id)} disabled={launching === c.id} className="bg-white/20 text-white hover:bg-white/30 border-0">
+                    {launching === c.id ? <Loader2 size={14} className="animate-spin" /> : <Rocket size={14} />}
                     {launching === c.id ? "Sending…" : "Launch Now"}
                   </Button>
                 )}
               </div>
             </div>
-            <Funnel c={c} />
+            {/* Funnel */}
+            <div className="px-6 py-5">
+              <Funnel c={c} />
+            </div>
           </div>
         ))}
         {campaigns.length === 0 && (
-          <p className="py-16 text-center text-[13px] text-slate-400">No campaigns yet — create your first broadcast</p>
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-white"
+              style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)", boxShadow: "0 8px 24px rgba(99,102,241,0.3)" }}>
+              <Rocket size={28} />
+            </div>
+            <p className="text-[15px] font-bold text-slate-700">No campaigns yet</p>
+            <p className="mt-1 text-[13px] text-slate-400">Create your first broadcast to reach your audience</p>
+          </div>
         )}
       </div>
 

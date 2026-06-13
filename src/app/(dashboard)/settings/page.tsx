@@ -57,21 +57,31 @@ export default function SettingsPage() {
           </Button>
         }
       />
-      <div className="max-w-3xl space-y-6 p-8">
-        <section className="rounded-2xl border border-slate-200 bg-white p-6">
-          <h2 className="mb-4 flex items-center gap-2 text-[15px] font-bold text-slate-900">
-            <Building2 size={17} className="text-emerald-600" /> Business Profile
-          </h2>
+      <div className="max-w-3xl space-y-5 px-8 pb-8">
+        <section className="overflow-hidden rounded-2xl shadow-md" style={{ background: "rgba(255,255,255,0.95)", border: "1px solid rgba(255,255,255,0.9)" }}>
+          <div className="flex items-center gap-3 border-b border-slate-100 px-6 py-4"
+            style={{ background: "linear-gradient(135deg,rgba(16,185,129,0.08),rgba(5,150,105,0.04))" }}>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl text-white" style={{ background: "linear-gradient(135deg,#10b981,#059669)", boxShadow: "0 4px 12px rgba(16,185,129,0.35)" }}>
+              <Building2 size={16} />
+            </div>
+            <h2 className="text-[15px] font-bold text-slate-900">Business Profile</h2>
+          </div>
+          <div className="p-6">
           <Field label="Business name">
             <input className={inputCls} value={form.businessName} onChange={(e) => set("businessName", e.target.value)} />
           </Field>
+          </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-[15px] font-bold text-slate-900">
-              <Plug size={17} className="text-emerald-600" /> WhatsApp Cloud API
-            </h2>
+        <section className="overflow-hidden rounded-2xl shadow-md" style={{ background: "rgba(255,255,255,0.95)", border: "1px solid rgba(255,255,255,0.9)" }}>
+          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4"
+            style={{ background: "linear-gradient(135deg,rgba(99,102,241,0.08),rgba(139,92,246,0.04))" }}>
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl text-white" style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)", boxShadow: "0 4px 12px rgba(99,102,241,0.35)" }}>
+                <Plug size={16} />
+              </div>
+              <h2 className="text-[15px] font-bold text-slate-900">WhatsApp Cloud API</h2>
+            </div>
             <label className="flex cursor-pointer items-center gap-2 text-[12.5px] font-semibold text-slate-600">
               Demo mode
               <button
@@ -82,6 +92,7 @@ export default function SettingsPage() {
               </button>
             </label>
           </div>
+          <div className="p-6">
           <p className="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-[12.5px] leading-relaxed text-amber-800">
             {form.demoMode
               ? "Demo mode is ON — all sends are simulated locally. Turn it off after entering your Meta credentials to send real WhatsApp messages."
@@ -101,13 +112,18 @@ export default function SettingsPage() {
           <Field label="Webhook Verify Token" hint="Use the same value when configuring the webhook in your Meta App dashboard">
             <input className={inputCls} value={form.verifyToken} onChange={(e) => set("verifyToken", e.target.value)} />
           </Field>
+          </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-[15px] font-bold text-slate-900">
-              <Clock size={17} className="text-amber-500" /> Working Hours & Away Message
-            </h2>
+        <section className="overflow-hidden rounded-2xl shadow-md" style={{ background: "rgba(255,255,255,0.95)", border: "1px solid rgba(255,255,255,0.9)" }}>
+          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4"
+            style={{ background: "linear-gradient(135deg,rgba(245,158,11,0.08),rgba(249,115,22,0.04))" }}>
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl text-white" style={{ background: "linear-gradient(135deg,#f59e0b,#f97316)", boxShadow: "0 4px 12px rgba(245,158,11,0.35)" }}>
+                <Clock size={16} />
+              </div>
+              <h2 className="text-[15px] font-bold text-slate-900">Working Hours & Away Message</h2>
+            </div>
             <label className="flex cursor-pointer items-center gap-2 text-[12.5px] font-semibold text-slate-600">
               Away replies
               <button
@@ -118,6 +134,7 @@ export default function SettingsPage() {
               </button>
             </label>
           </div>
+          <div className="p-6">
           <div className="mb-3.5 grid grid-cols-2 gap-4">
             <Field label="Start time">
               <input type="time" className={inputCls} value={form.workStart} onChange={(e) => set("workStart", e.target.value)} />
@@ -150,18 +167,25 @@ export default function SettingsPage() {
           <Field label="Away message" hint="Sent automatically outside working hours (max once every 6 hours per conversation)">
             <textarea rows={2} className={`${inputCls} resize-none`} value={form.awayMessage} onChange={(e) => set("awayMessage", e.target.value)} />
           </Field>
+          </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-6">
-          <h2 className="mb-4 flex items-center gap-2 text-[15px] font-bold text-slate-900">
-            <Bot size={17} className="text-violet-600" /> AI Agent
-          </h2>
+        <section className="overflow-hidden rounded-2xl shadow-md" style={{ background: "rgba(255,255,255,0.95)", border: "1px solid rgba(255,255,255,0.9)" }}>
+          <div className="flex items-center gap-3 border-b border-slate-100 px-6 py-4"
+            style={{ background: "linear-gradient(135deg,rgba(139,92,246,0.08),rgba(217,70,239,0.04))" }}>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl text-white" style={{ background: "linear-gradient(135deg,#8b5cf6,#d946ef)", boxShadow: "0 4px 12px rgba(139,92,246,0.35)" }}>
+              <Bot size={16} />
+            </div>
+            <h2 className="text-[15px] font-bold text-slate-900">AI Agent</h2>
+          </div>
+          <div className="p-6">
           <Field label="OpenAI API Key (optional)" hint="With a key, the AI agent uses GPT for replies. Without it, the built-in intent engine answers common questions.">
             <input type="password" className={inputCls} value={form.openaiApiKey} onChange={(e) => set("openaiApiKey", e.target.value)} placeholder="sk-…" />
           </Field>
           <Field label="AI persona / instructions">
             <textarea rows={3} className={`${inputCls} resize-none`} value={form.aiPersona} onChange={(e) => set("aiPersona", e.target.value)} />
           </Field>
+          </div>
         </section>
       </div>
     </div>

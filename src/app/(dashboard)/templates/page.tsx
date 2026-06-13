@@ -136,7 +136,7 @@ export default function TemplatesPage() {
       />
       <div className="grid grid-cols-1 gap-5 p-8 md:grid-cols-2 xl:grid-cols-3">
         {templates.map((t) => (
-          <div key={t.id} className="fade-up overflow-hidden glass-card">
+          <div key={t.id} className="fade-up overflow-hidden rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-xl" style={{ background: "rgba(255,255,255,0.96)", border: "1px solid rgba(99,102,241,0.08)", boxShadow: "0 4px 16px rgba(99,102,241,0.07)" }}>
             <div className="flex items-start justify-between px-5 pt-4">
               <div>
                 <p className="font-mono text-[13px] font-bold text-slate-900">{t.name}</p>

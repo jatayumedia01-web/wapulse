@@ -153,7 +153,7 @@ export default function DripPage() {
           </div>
         }
       />
-      <div className="space-y-4 p-8">
+      <div className="space-y-4 px-8 pb-8">
         {sequences.map((s) => (
           <div key={s.id} className={`fade-up rounded-2xl border bg-white p-6 ${s.enabled ? "border-slate-200" : "border-slate-100 opacity-60"}`}>
             <div className="flex items-start justify-between">

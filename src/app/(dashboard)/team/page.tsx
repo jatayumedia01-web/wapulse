@@ -137,7 +137,15 @@ export default function TeamPage() {
               </div>
             );
           })}
-          {members.length === 0 && <p className="col-span-full py-16 text-center text-[13px] text-slate-400">No team members yet</p>}
+          {members.length === 0 && (
+            <div className="col-span-full flex flex-col items-center justify-center py-16">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-white" style={{ background: "linear-gradient(135deg,#8b5cf6,#d946ef)", boxShadow: "0 8px 24px rgba(139,92,246,0.3)" }}>
+                <Plus size={28} />
+              </div>
+              <p className="text-[15px] font-bold text-slate-700">No team members yet</p>
+              <p className="mt-1 text-[13px] text-slate-400">Add agents to manage conversations together</p>
+            </div>
+          )}
         </div>
       </div>
 

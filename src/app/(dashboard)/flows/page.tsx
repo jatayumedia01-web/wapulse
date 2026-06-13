@@ -119,7 +119,7 @@ export default function FlowsPage() {
           </Button>
         }
       />
-      <div className="space-y-4 p-8">
+      <div className="space-y-4 px-8 pb-8">
         {flows.map((f) => {
           const flowNodes: FlowNode[] = JSON.parse(f.nodes || "[]");
           return (

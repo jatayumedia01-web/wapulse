@@ -122,7 +122,7 @@ export default function CommercePage() {
           </div>
         }
       />
-      <div className="p-8">
+      <div className="px-8 pb-8">
         <div className="mb-5 flex gap-1.5">
           {(["products", "orders"] as const).map((t) => (
             <button
@@ -140,32 +140,47 @@ export default function CommercePage() {
         {tab === "products" ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {products.map((p) => (
-              <div key={p.id} className="fade-up bg-white/90 backdrop-blur border border-white/80 shadow-lg shadow-indigo-50 rounded-2xl p-5">
-                <div className="flex items-start justify-between">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+              <div key={p.id} className="overflow-hidden rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl"
+                style={{ background: "rgba(255,255,255,0.96)", border: "1px solid rgba(99,102,241,0.08)", boxShadow: "0 4px 16px rgba(99,102,241,0.07)" }}>
+                {/* Product color header */}
+                <div className="flex items-center justify-between px-5 py-4"
+                  style={{ background: p.inStock ? "linear-gradient(135deg,#10b981,#059669)" : "linear-gradient(135deg,#94a3b8,#64748b)" }}>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-white">
                     <Package size={20} />
-                  </span>
-                  <button onClick={() => removeProduct(p.id)} className="rounded-lg p-1.5 text-slate-300 hover:bg-rose-50 hover:text-rose-500">
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-                <h3 className="mt-3 text-[14.5px] font-bold text-slate-900">{p.name}</h3>
-                {p.description && <p className="mt-0.5 line-clamp-2 text-[12.5px] text-slate-500">{p.description}</p>}
-                <div className="mt-3 flex items-center justify-between">
-                  <p className="flex items-center text-[16px] font-bold text-slate-900">
-                    <IndianRupee size={15} />{p.price.toLocaleString()}
-                  </p>
+                  </div>
                   <div className="flex items-center gap-2">
-                    {p.sku && <span className="font-mono text-[11px] text-slate-400">{p.sku}</span>}
-                    <Badge tone={p.inStock ? "green" : "red"}>{p.inStock ? "In stock" : "Out of stock"}</Badge>
+                    <span className="rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
+                      {p.inStock ? "In stock" : "Out of stock"}
+                    </span>
+                    <button onClick={() => removeProduct(p.id)} className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/20 text-white hover:bg-white/30 transition-colors">
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h3 className="text-[14.5px] font-bold text-slate-900">{p.name}</h3>
+                  {p.description && <p className="mt-0.5 line-clamp-2 text-[12.5px] text-slate-500">{p.description}</p>}
+                  <div className="mt-3 flex items-center justify-between">
+                    <p className="flex items-center gap-0.5 text-[20px] font-bold text-slate-900">
+                      <IndianRupee size={15} className="text-slate-600" />{p.price.toLocaleString()}
+                    </p>
+                    {p.sku && <span className="font-mono text-[11px] text-slate-400 bg-slate-100 px-2 py-1 rounded-md">{p.sku}</span>}
                   </div>
                 </div>
               </div>
             ))}
-            {products.length === 0 && <p className="col-span-full py-16 text-center text-[13px] text-slate-400">No products yet</p>}
+            {products.length === 0 && (
+              <div className="col-span-full flex flex-col items-center justify-center py-20">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-white" style={{ background: "linear-gradient(135deg,#10b981,#059669)", boxShadow: "0 8px 24px rgba(16,185,129,0.3)" }}>
+                  <Package size={28} />
+                </div>
+                <p className="text-[15px] font-bold text-slate-700">No products yet</p>
+                <p className="mt-1 text-[13px] text-slate-400">Add your product catalog to sell via WhatsApp</p>
+              </div>
+            )}
           </div>
         ) : (
-          <div className="overflow-hidden glass-card">
+          <div className="overflow-hidden rounded-2xl" style={{ background: "rgba(255,255,255,0.95)", border: "1px solid rgba(255,255,255,0.9)", boxShadow: "0 4px 20px rgba(99,102,241,0.07)" }}>
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-[11.5px] font-bold uppercase tracking-wide text-slate-400">
