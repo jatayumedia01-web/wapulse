@@ -39,7 +39,7 @@ function LoginForm() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 flex flex-col items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-xl shadow-emerald-200">
             <Zap size={24} strokeWidth={2.5} />
           </span>
           <div className="text-center">
@@ -48,7 +48,7 @@ function LoginForm() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="glass-card p-8">
+        <form onSubmit={handleSubmit} className="rounded-2xl bg-white/90 backdrop-blur-xl border border-white/70 shadow-[0_8px_40px_rgba(100,120,180,0.15)] p-8">
           <div className="space-y-4">
             <div>
               <label className="mb-1.5 block text-[13px] font-semibold text-slate-700">Email address</label>
@@ -58,7 +58,7 @@ function LoginForm() {
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="you@company.com"
-                className="input-glass w-full px-4 py-2.5 text-[14px]"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[14px] text-slate-800 placeholder:text-slate-400 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15"
               />
             </div>
             <div>
@@ -75,7 +75,7 @@ function LoginForm() {
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   placeholder="••••••••"
-                  className="input-glass w-full px-4 py-2.5 pr-10 text-[14px]"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 pr-10 text-[14px] text-slate-800 placeholder:text-slate-400 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15"
                 />
                 <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                   {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -91,7 +91,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl gradient-emerald py-3 text-[14px] font-semibold text-white shadow-lg shadow-emerald-200/70 transition-all hover:-translate-y-px hover:shadow-emerald-300/70 disabled:opacity-60"
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3 text-[14px] font-semibold text-white shadow-lg shadow-emerald-200 transition-all hover:-translate-y-px hover:shadow-emerald-300 disabled:opacity-60"
           >
             {loading ? <Loader2 size={16} className="animate-spin" /> : null}
             {loading ? "Signing in…" : "Sign in"}

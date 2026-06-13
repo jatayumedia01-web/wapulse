@@ -18,7 +18,7 @@ type Rule = {
   hits: number;
 };
 
-const TRIGGER_META: Record<string, { label: string; icon: typeof Bot; tone: string; iconCls: string; desc: string }> = {
+const TRIGGER_META: Record<string, { label: string; icon: typeof Bot; tone: "blue" | "green" | "amber" | "red" | "violet" | "slate"; iconCls: string; desc: string }> = {
   KEYWORD: { label: "Keyword", icon: Zap, tone: "blue", iconCls: "bg-sky-50 text-sky-600", desc: "Replies when message contains keywords" },
   WELCOME: { label: "Welcome", icon: Hand, tone: "green", iconCls: "bg-emerald-50 text-emerald-600", desc: "First message from a new customer" },
   AWAY: { label: "Away", icon: MessageCircle, tone: "amber", iconCls: "bg-amber-50 text-amber-600", desc: "Outside business hours" },
@@ -162,7 +162,7 @@ export default function AutomationPage() {
         {rules.length === 0 && <p className="py-16 text-center text-[13px] text-slate-400">No automation rules yet</p>}
 
         {/* Quick replies */}
-        <div className="mt-8 glass-card p-6">
+        <div className="mt-8 bg-white/90 backdrop-blur border border-white/80 shadow-lg shadow-indigo-50 rounded-2xl p-6">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="flex items-center gap-2 text-[15px] font-bold text-slate-900">

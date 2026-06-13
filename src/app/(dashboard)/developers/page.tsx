@@ -112,7 +112,7 @@ export default function DevelopersPage() {
         }
       />
       <div className="grid gap-6 p-8 xl:grid-cols-2">
-        <div className="glass-card p-6">
+        <div className="bg-white/90 backdrop-blur border border-white/80 shadow-lg shadow-indigo-50 rounded-2xl p-6">
           <h2 className="mb-4 text-[15px] font-bold text-slate-900">Your API Keys</h2>
           <div className="space-y-2.5">
             {keys.map((k) => (
@@ -133,7 +133,7 @@ export default function DevelopersPage() {
           </div>
         </div>
 
-        <div className="glass-card p-6">
+        <div className="bg-white/90 backdrop-blur border border-white/80 shadow-lg shadow-indigo-50 rounded-2xl p-6">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="flex items-center gap-2 text-[15px] font-bold text-slate-900">
@@ -173,7 +173,7 @@ export default function DevelopersPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="glass-card p-6">
+          <div className="bg-white/90 backdrop-blur border border-white/80 shadow-lg shadow-indigo-50 rounded-2xl p-6">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-[15px] font-bold text-slate-900">Send a text message</h2>
               <button onClick={() => copy(CURL_EXAMPLE, "curl")} className="flex items-center gap-1 text-[12px] font-semibold text-emerald-600">
@@ -184,7 +184,7 @@ export default function DevelopersPage() {
               {CURL_EXAMPLE}
             </pre>
           </div>
-          <div className="glass-card p-6">
+          <div className="bg-white/90 backdrop-blur border border-white/80 shadow-lg shadow-indigo-50 rounded-2xl p-6">
             <h2 className="mb-3 text-[15px] font-bold text-slate-900">Send a template message</h2>
             <p className="mb-3 text-[12.5px] text-slate-500">
               POST the same endpoint with <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11.5px]">type: template</code>:

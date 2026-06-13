@@ -22,7 +22,7 @@ type Template = {
   ltoExpiry: string | null;
 };
 
-const CATEGORY_TONE: Record<string, string> = {
+const CATEGORY_TONE: Record<string, "blue" | "green" | "amber" | "red" | "violet" | "slate"> = {
   MARKETING: "violet",
   UTILITY: "blue",
   AUTHENTICATION: "amber",

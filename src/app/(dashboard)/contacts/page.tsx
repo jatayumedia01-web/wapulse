@@ -184,7 +184,7 @@ export default function ContactsPage() {
             />
           </div>
 
-          <div className="overflow-hidden glass-card">
+          <div className="overflow-hidden rounded-2xl border border-white/80 shadow-lg" style={{ background: "rgba(255,255,255,0.9)" }}>
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-[11.5px] font-bold uppercase tracking-wide text-slate-400">

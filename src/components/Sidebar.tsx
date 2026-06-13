@@ -1,65 +1,53 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  LayoutDashboard, MessageSquare, Users, Megaphone, FileText, Bot,
-  Code2, Settings, Zap, GitBranch, ShoppingBag, UserCog, Globe,
-  Layers, ClipboardList, Columns, CreditCard, Shield, LogOut,
-  ChevronRight, Sparkles,
+  LayoutDashboard, MessageSquare, Users, Megaphone, Zap, BookTemplate,
+  Settings, BarChart3, ChevronRight, Store, Users2, Globe,
+  Layers, ListFilter, LogOut, Bot, MessagesSquare, Hash,
+  GitBranch, ChevronLeft, Bell, Sparkles,
 } from "lucide-react";
 
 const NAV = [
-  { group: "Overview", items: [
-    { href: "/dashboard",    label: "Dashboard",       icon: LayoutDashboard },
-    { href: "/inbox",        label: "Team Inbox",      icon: MessageSquare },
+  { section: "OVERVIEW", items: [
+    { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { href: "/inbox", icon: MessagesSquare, label: "Team Inbox" },
   ]},
-  { group: "Audience", items: [
-    { href: "/contacts",     label: "Contacts",        icon: Users },
-    { href: "/custom-fields",label: "Custom Fields",   icon: Columns },
+  { section: "AUDIENCE", items: [
+    { href: "/contacts", icon: Users, label: "Contacts" },
+    { href: "/custom-fields", icon: Hash, label: "Custom Fields" },
   ]},
-  { group: "Messaging", items: [
-    { href: "/campaigns",    label: "Campaigns",       icon: Megaphone },
-    { href: "/drip",         label: "Drip Sequences",  icon: Layers },
-    { href: "/templates",    label: "Templates",       icon: FileText },
+  { section: "MESSAGING", items: [
+    { href: "/campaigns", icon: Megaphone, label: "Campaigns" },
+    { href: "/drip", icon: GitBranch, label: "Drip Sequences" },
+    { href: "/templates", icon: BookTemplate, label: "Templates" },
   ]},
-  { group: "Automation", items: [
-    { href: "/automation",   label: "Rules",           icon: Bot },
-    { href: "/flows",        label: "Chatbot Flows",   icon: GitBranch },
-    { href: "/forms",        label: "WA Forms",        icon: ClipboardList },
+  { section: "AUTOMATION", items: [
+    { href: "/automation", icon: Zap, label: "Rules" },
+    { href: "/chatbot", icon: Bot, label: "Chatbot Flows" },
+    { href: "/forms", icon: ListFilter, label: "WA Forms" },
   ]},
-  { group: "Business", items: [
-    { href: "/commerce",     label: "Commerce",        icon: ShoppingBag },
-    { href: "/team",         label: "Team",            icon: UserCog },
-    { href: "/widget",       label: "Web Widget",      icon: Globe },
-  ]},
-  { group: "Platform", items: [
-    { href: "/developers",   label: "Developer API",   icon: Code2 },
-    { href: "/billing",      label: "Billing & Plans", icon: CreditCard },
-    { href: "/settings",     label: "Settings",        icon: Settings },
-    { href: "/superadmin",   label: "Super Admin",     icon: Shield },
+  { section: "BUSINESS", items: [
+    { href: "/commerce", icon: Store, label: "Commerce" },
+    { href: "/team", icon: Users2, label: "Team" },
+    { href: "/analytics", icon: BarChart3, label: "Analytics" },
+    { href: "/developers", icon: Globe, label: "Developers" },
+    { href: "/settings", icon: Settings, label: "Settings" },
   ]},
 ];
 
-const PLAN_PILL: Record<string, string> = {
-  FREE:       "bg-slate-100 text-slate-500",
-  STARTER:    "bg-blue-50 text-blue-600",
-  GROWTH:     "bg-emerald-50 text-emerald-600",
-  BUSINESS:   "bg-violet-50 text-violet-600",
-  ENTERPRISE: "bg-amber-50 text-amber-600",
-};
-
-type Me = { name: string; email: string; role: string; org: { name: string; plan: string } };
-
 export default function Sidebar() {
-  const pathname = usePathname();
+  const path = usePathname();
   const router = useRouter();
-  const [me, setMe] = useState<Me | null>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [user, setUser] = useState<{ name?: string; orgName?: string; orgPlan?: string } | null>(null);
 
   useEffect(() => {
-    fetch("/api/auth/me").then((r) => r.ok ? r.json() : null).then(setMe).catch(() => {});
+    fetch("/api/auth/me")
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => { if (d) setUser({ name: d.user?.name || "User", orgName: d.org?.name || "My Org", orgPlan: d.org?.plan || "FREE" }); })
+      .catch(() => {});
   }, []);
 
   async function signOut() {
@@ -67,108 +55,126 @@ export default function Sidebar() {
     router.push("/auth/login");
   }
 
+  const planColor: Record<string, string> = {
+    FREE: "#6366f1", STARTER: "#3b82f6", GROWTH: "#10b981", PRO: "#8b5cf6", ENTERPRISE: "#f59e0b",
+  };
+  const pc = planColor[(user?.orgPlan || "FREE").toUpperCase()] || "#6366f1";
+
   return (
     <aside
-      className={`glass-sidebar flex h-screen shrink-0 flex-col transition-all duration-300 ${collapsed ? "w-[68px]" : "w-[230px]"}`}
-      style={{ zIndex: 40 }}
+      className="flex h-full flex-col transition-all duration-300"
+      style={{
+        width: collapsed ? 64 : 230,
+        background: "rgba(255,255,255,0.85)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderRight: "1px solid rgba(99,102,241,0.12)",
+        boxShadow: "2px 0 20px rgba(99,102,241,0.08)",
+        position: "relative",
+        zIndex: 50,
+        flexShrink: 0,
+      }}
     >
       {/* Logo */}
-      <div className={`flex items-center gap-3 px-4 py-5 ${collapsed ? "justify-center" : ""}`}>
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl gradient-emerald shadow-lg shadow-emerald-200">
-          <Zap size={18} strokeWidth={2.5} className="text-white" />
+      <div
+        className="flex items-center gap-3 px-4 py-5"
+        style={{ borderBottom: "1px solid rgba(99,102,241,0.08)" }}
+      >
+        <div
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-white font-bold text-base"
+          style={{ background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)", boxShadow: "0 4px 14px rgba(99,102,241,0.4)" }}
+        >
+          W
         </div>
         {!collapsed && (
-          <div className="fade-in">
-            <p className="text-[15px] font-bold leading-tight text-slate-900">WAPulse</p>
-            <p className="text-[10px] font-medium text-slate-400">WhatsApp Platform</p>
+          <div className="min-w-0">
+            <p className="truncate text-[15px] font-bold text-slate-800">WAPulse</p>
+            <p className="truncate text-[11px] text-slate-400 font-medium">WhatsApp Platform</p>
           </div>
         )}
-        {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className={`ml-auto flex h-6 w-6 items-center justify-center rounded-full transition-colors hover:bg-slate-100 ${collapsed ? "hidden" : ""}`}
+          className="ml-auto flex-shrink-0 flex h-6 w-6 items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all"
         >
-          <ChevronRight size={13} className="text-slate-400" />
+          {collapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
         </button>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-3">
-        {NAV.map(({ group, items }) => (
-          <div key={group} className="mb-1">
+      <div className="flex-1 overflow-y-auto py-3 px-2.5">
+        {NAV.map(({ section, items }) => (
+          <div key={section} className="mb-1">
             {!collapsed && (
-              <p className="mb-1 mt-3 px-2 text-[9.5px] font-bold uppercase tracking-widest text-slate-400">
-                {group}
+              <p className="mb-1 mt-3 px-2 text-[9.5px] font-semibold uppercase tracking-widest text-slate-400">
+                {section}
               </p>
             )}
-            {collapsed && <div className="my-2 mx-2 h-px bg-slate-100" />}
-            {items.map(({ href, label, icon: Icon }) => {
-              const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+            {items.map(({ href, icon: Icon, label }) => {
+              const active = path === href || path.startsWith(href + "/");
               return (
                 <Link
                   key={href}
                   href={href}
-                  data-tooltip={collapsed ? label : undefined}
-                  className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200 ${
-                    active
-                      ? "nav-active font-semibold"
-                      : "text-slate-500 hover:bg-white/70 hover:text-slate-900"
-                  } ${collapsed ? "justify-center px-2" : ""}`}
+                  title={collapsed ? label : undefined}
+                  className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 mb-0.5 text-sm font-medium transition-all duration-150"
+                  style={{
+                    background: active
+                      ? "linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.08) 100%)"
+                      : "transparent",
+                    color: active ? "#6366f1" : "#64748b",
+                    borderLeft: active ? "3px solid #6366f1" : "3px solid transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!active) e.currentTarget.style.background = "rgba(99,102,241,0.05)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!active) e.currentTarget.style.background = "transparent";
+                  }}
                 >
-                  <Icon
-                    size={16}
-                    className={`shrink-0 transition-colors ${active ? "text-emerald-600" : "text-slate-400 group-hover:text-slate-600"}`}
-                  />
-                  {!collapsed && <span>{label}</span>}
-                  {active && !collapsed && (
-                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  )}
+                  <Icon size={16} strokeWidth={active ? 2.2 : 1.8} style={{ flexShrink: 0, color: active ? "#6366f1" : "#94a3b8" }} />
+                  {!collapsed && <span className="truncate">{label}</span>}
                 </Link>
               );
             })}
           </div>
         ))}
-      </nav>
+      </div>
 
-      {/* User card */}
-      <div className="px-3 pb-4">
-        {me && !collapsed && (
-          <div className="mb-2 glass-sm rounded-2xl p-3">
-            <div className="flex items-center gap-2.5">
-              <div className="relative">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl gradient-emerald text-[12px] font-bold text-white shadow-md shadow-emerald-200">
-                  {me.name.charAt(0).toUpperCase()}
-                </div>
-                <span className="dot-online absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[12.5px] font-semibold text-slate-800">{me.name}</p>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className={`rounded-full px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-wide ${PLAN_PILL[me.org?.plan] ?? PLAN_PILL.FREE}`}>
-                    {me.org?.plan}
-                  </span>
-                </div>
+      {/* AI badge */}
+      {!collapsed && (
+        <div className="mx-3 mb-3 flex items-center gap-2 rounded-xl px-3 py-2.5"
+          style={{ background: "linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(5,150,105,0.07) 100%)", border: "1px solid rgba(16,185,129,0.2)" }}>
+          <Sparkles size={14} style={{ color: "#10b981", flexShrink: 0 }} />
+          <span className="text-[11px] font-semibold text-emerald-700 truncate">AI Replies Active</span>
+        </div>
+      )}
+
+      {/* User footer */}
+      <div style={{ borderTop: "1px solid rgba(99,102,241,0.08)" }} className="p-3">
+        {!collapsed ? (
+          <div className="flex items-center gap-2.5">
+            <div
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-white text-xs font-bold"
+              style={{ background: `linear-gradient(135deg, ${pc}cc 0%, ${pc} 100%)`, boxShadow: `0 3px 10px ${pc}40` }}
+            >
+              {(user?.name || "U")[0].toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[12.5px] font-semibold text-slate-700">{user?.name || "User"}</p>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-semibold rounded-md px-1.5 py-0.5 text-white"
+                  style={{ background: pc }}>{user?.orgPlan || "FREE"}</span>
               </div>
             </div>
+            <button onClick={signOut} className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
+              <LogOut size={13} />
+            </button>
           </div>
+        ) : (
+          <button onClick={signOut} className="mx-auto flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
+            <LogOut size={14} />
+          </button>
         )}
-
-        {/* AI badge */}
-        {!collapsed && (
-          <div className="mb-2 flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-50 to-blue-50 px-3 py-2 border border-violet-100/60">
-            <Sparkles size={13} className="text-violet-500 shrink-0" />
-            <p className="text-[11px] font-semibold text-violet-700">AI Replies Active</p>
-          </div>
-        )}
-
-        <button
-          onClick={signOut}
-          className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[12.5px] font-semibold text-slate-500 transition-all hover:bg-rose-50 hover:text-rose-600 ${collapsed ? "justify-center" : ""}`}
-          data-tooltip={collapsed ? "Sign out" : undefined}
-        >
-          <LogOut size={15} className="shrink-0" />
-          {!collapsed && "Sign out"}
-        </button>
       </div>
     </aside>
   );

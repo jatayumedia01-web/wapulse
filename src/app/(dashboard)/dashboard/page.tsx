@@ -1,241 +1,232 @@
 "use client";
-
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import {
-  Users, MessageSquare, CheckCheck, Eye, Bot, AlertTriangle,
-  ArrowUpRight, TrendingUp, Activity,
+  Users, MessageSquare, CheckCircle2, Eye, Bot, AlertTriangle,
+  TrendingUp, TrendingDown, ArrowUpRight, Megaphone, Zap,
+  ChevronRight, Send, Clock, RefreshCw,
 } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Badge } from "@/components/ui";
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+} from "recharts";
 
-type Analytics = {
-  agents: Array<{ name: string; role: string; open: number; resolved: number; avgResponseMins: number }>;
-  totals: {
-    contacts: number; openConversations: number; messages: number;
-    deliveryRate: number; readRate: number; aiHandled: number; negativeAlerts: number;
-  };
-  timeline: Array<{ date: string; inbound: number; outbound: number }>;
-  recentCampaigns: Array<{ id: string; name: string; status: string; total: number; sent: number; delivered: number; read: number; replied: number }>;
+interface Stats {
+  contacts?: number; openConversations?: number;
+  deliveryRate?: number; readRate?: number; aiHandled?: number; negativeAlerts?: number;
+}
+interface Campaign {
+  id: string; name: string; status: string; sent?: number; readRate?: number; replies?: number; sentCount?: number;
+}
+interface ChartPoint { date: string; outbound: number; inbound: number; }
+
+const CARD_THEMES = [
+  { bg: "linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%)", glow: "rgba(99,102,241,0.35)", icon: Users, label: "Total Contacts", key: "contacts", fmt: (v:number) => v.toString() },
+  { bg: "linear-gradient(135deg,#3b82f6 0%,#06b6d4 100%)", glow: "rgba(59,130,246,0.35)", icon: MessageSquare, label: "Open Conversations", key: "openConversations", fmt: (v:number) => v.toString() },
+  { bg: "linear-gradient(135deg,#10b981 0%,#059669 100%)", glow: "rgba(16,185,129,0.35)", icon: CheckCircle2, label: "Delivery Rate", key: "deliveryRate", fmt: (v:number) => v + "%" },
+  { bg: "linear-gradient(135deg,#f59e0b 0%,#ef4444 100%)", glow: "rgba(245,158,11,0.35)", icon: Eye, label: "Read Rate", key: "readRate", fmt: (v:number) => v + "%" },
+  { bg: "linear-gradient(135deg,#8b5cf6 0%,#d946ef 100%)", glow: "rgba(139,92,246,0.35)", icon: Bot, label: "AI Replies", key: "aiHandled", fmt: (v:number) => v.toString() },
+  { bg: "linear-gradient(135deg,#f97316 0%,#ef4444 100%)", glow: "rgba(249,115,22,0.35)", icon: AlertTriangle, label: "Negative Alerts", key: "negativeAlerts", fmt: (v:number) => v.toString() },
+];
+
+const STATUS_STYLES: Record<string, { bg: string; color: string; dot: string }> = {
+  RUNNING:   { bg: "rgba(16,185,129,0.1)",  color: "#059669", dot: "#10b981" },
+  SCHEDULED: { bg: "rgba(59,130,246,0.1)",  color: "#2563eb", dot: "#3b82f6" },
+  COMPLETED: { bg: "rgba(100,116,139,0.1)", color: "#475569", dot: "#94a3b8" },
+  FAILED:    { bg: "rgba(239,68,68,0.1)",   color: "#dc2626", dot: "#ef4444" },
+  PAUSED:    { bg: "rgba(245,158,11,0.1)",  color: "#d97706", dot: "#f59e0b" },
 };
 
-function statusTone(s: string) {
-  const m: Record<string, string> = { COMPLETED: "green", RUNNING: "blue", SCHEDULED: "amber", DRAFT: "slate", FAILED: "red" };
-  return m[s] ?? "slate";
+function glass(opacity = 0.85) {
+  return {
+    background: `rgba(255,255,255,${opacity})`,
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    border: "1px solid rgba(255,255,255,0.8)",
+    boxShadow: "0 4px 24px rgba(99,102,241,0.07), 0 1px 4px rgba(0,0,0,0.05)",
+    borderRadius: 20,
+  };
 }
 
-const STAT_CARDS = [
-  { key: "contacts",          label: "Total Contacts",        icon: Users,         tone: "sky",     suffix: "" },
-  { key: "openConversations", label: "Open Conversations",    icon: MessageSquare, tone: "emerald", suffix: "" },
-  { key: "deliveryRate",      label: "Delivery Rate",         icon: CheckCheck,    tone: "violet",  suffix: "%" },
-  { key: "readRate",          label: "Read Rate",             icon: Eye,           tone: "amber",   suffix: "%" },
-  { key: "aiHandled",         label: "AI Replies",            icon: Bot,           tone: "blue",    suffix: "" },
-  { key: "negativeAlerts",    label: "Negative Alerts",       icon: AlertTriangle, tone: "rose",    suffix: "" },
-] as const;
-
-const TONE_MAP = {
-  sky:     { grad: "gradient-sky",     glow: "shadow-sky-200" },
-  emerald: { grad: "gradient-emerald", glow: "shadow-emerald-200" },
-  violet:  { grad: "gradient-violet",  glow: "shadow-violet-200" },
-  amber:   { grad: "gradient-amber",   glow: "shadow-amber-200" },
-  blue:    { grad: "gradient-blue",    glow: "shadow-blue-200" },
-  rose:    { grad: "gradient-rose",    glow: "shadow-rose-200" },
-};
+function StatCard({ theme, value, loading, index }: { theme: typeof CARD_THEMES[0]; value: number; loading: boolean; index: number }) {
+  const Icon = theme.icon;
+  return (
+    <div
+      className="relative overflow-hidden p-5 anim-fade-up transition-transform duration-200 hover:-translate-y-1"
+      style={{ ...glass(), animationDelay: `${index * 60}ms` }}
+    >
+      {/* bg accent */}
+      <div style={{ position: "absolute", top: -30, right: -30, width: 100, height: 100, borderRadius: "50%", background: theme.bg, opacity: 0.08, pointerEvents: "none" }} />
+      <div className="flex items-start justify-between">
+        <div
+          className="flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-lg"
+          style={{ background: theme.bg, boxShadow: `0 6px 20px ${theme.glow}` }}
+        >
+          <Icon size={20} strokeWidth={2} />
+        </div>
+        <ArrowUpRight size={14} className="text-slate-300" />
+      </div>
+      <div className="mt-4">
+        {loading ? (
+          <div className="skeleton h-8 w-20 mb-1" />
+        ) : (
+          <p className="text-3xl font-bold text-slate-800">{theme.fmt(value)}</p>
+        )}
+        <p className="mt-1 text-[12px] font-medium text-slate-400">{theme.label}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
-  const [data, setData] = useState<Analytics | null>(null);
+  const [stats, setStats] = useState<Stats>({});
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [chart, setChart] = useState<ChartPoint[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/analytics").then((r) => r.json()).then((d) => {
-      if (d && typeof d === "object" && !d.error) setData(d);
-    }).catch(() => {});
+    Promise.all([
+      fetch("/api/analytics").then(r => r.ok ? r.json() : {}),
+    ]).then(([data]) => {
+      if (data?.totals) setStats(data.totals);
+      if (data?.recentCampaigns) setCampaigns(data.recentCampaigns.slice(0, 4));
+      if (data?.timeline) setChart(data.timeline.map((t: {date:string;inbound:number;outbound:number}) => ({ date: t.date, outbound: t.outbound, inbound: t.inbound })));
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
-  const now = new Date().toLocaleString("en-IN", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const emoji = hour < 12 ? "☀️" : hour < 17 ? "👋" : "🌙";
 
   return (
-    <div className="min-h-full px-8 py-7">
+    <div className="min-h-screen p-6 lg:p-8">
       {/* Header */}
-      <div className="mb-8 flex items-start justify-between stagger">
-        <div className="fade-up">
-          <h1 className="text-[24px] font-bold tracking-tight text-slate-900">Good morning 👋</h1>
-          <p className="mt-1 text-[13px] text-slate-500">{now}</p>
+      <div className="mb-8 flex items-center justify-between anim-fade-up">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">{greeting} {emoji}</h1>
+          <p className="mt-0.5 text-sm text-slate-500">
+            {new Date().toLocaleDateString("en", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+          </p>
         </div>
-        <Link href="/inbox"
-          className="fade-up flex items-center gap-2 rounded-2xl gradient-emerald px-5 py-2.5 text-[13px] font-semibold text-white shadow-lg shadow-emerald-200/70 transition-all hover:-translate-y-px hover:shadow-emerald-300/70">
-          <Activity size={15} /> Open Inbox
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5"
+            style={{ background: "linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%)", boxShadow: "0 4px 14px rgba(99,102,241,0.4)" }}
+          >
+            <Send size={14} /> New Campaign
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="mb-7 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6 stagger">
-        {STAT_CARDS.map(({ key, label, icon: Icon, tone, suffix }) => {
-          const t = TONE_MAP[tone];
-          const val = data ? data.totals[key as keyof Analytics["totals"]] : null;
-          return (
-            <div key={key} className="glass-card p-5 fade-up group cursor-default">
-              <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-2xl ${t.grad} shadow-lg ${t.glow}`}>
-                <Icon size={18} className="text-white" strokeWidth={2} />
-              </div>
-              <p className="text-[26px] font-bold tracking-tight text-slate-900">
-                {val !== null ? `${val}${suffix}` : <span className="skeleton inline-block h-7 w-16 rounded-lg" />}
-              </p>
-              <p className="mt-1 text-[12px] font-medium text-slate-500">{label}</p>
-            </div>
-          );
-        })}
+      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+        {CARD_THEMES.map((t, i) => (
+          <StatCard
+            key={t.key}
+            theme={t}
+            value={(stats as Record<string, number>)[t.key] ?? 0}
+            loading={loading}
+            index={i}
+          />
+        ))}
       </div>
 
-      {/* Charts row */}
-      <div className="mb-7 grid gap-5 xl:grid-cols-5">
-        {/* Area chart */}
-        <div className="glass-card p-6 xl:col-span-3 fade-up">
+      {/* Chart + Campaigns row */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        {/* Chart */}
+        <div className="lg:col-span-3 anim-fade-up stagger-3" style={{ ...glass(), padding: "24px" }}>
           <div className="mb-5 flex items-center justify-between">
             <div>
-              <h2 className="text-[15px] font-bold text-slate-900">Message Volume</h2>
-              <p className="text-[12px] text-slate-400">Last 7 days</p>
+              <h2 className="text-base font-bold text-slate-800">Message Volume</h2>
+              <p className="text-[12px] text-slate-400 mt-0.5">Last 7 days activity</p>
             </div>
-            <div className="flex gap-4">
-              {[{ label: "Outbound", color: "#10b981" }, { label: "Inbound", color: "#6366f1" }].map((l) => (
-                <span key={l.label} className="flex items-center gap-1.5 text-[11.5px] font-medium text-slate-500">
-                  <span className="h-2 w-2 rounded-full" style={{ background: l.color }} />
-                  {l.label}
-                </span>
-              ))}
+            <div className="flex items-center gap-4 text-[11px] font-semibold">
+              <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#6366f1" }} />Outbound</span>
+              <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: "#10b981" }} />Inbound</span>
             </div>
           </div>
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data?.timeline ?? []} margin={{ top: 4, right: 4, bottom: 0, left: -16 }}>
-                <defs>
-                  <linearGradient id="gOut" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.22} />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gIn" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6366f1" stopOpacity={0.18} />
-                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(100,120,200,0.08)" vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={28} allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{ borderRadius: 14, border: "1px solid rgba(200,210,255,0.5)", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(8px)", fontSize: 12, boxShadow: "0 8px 24px rgba(80,100,180,0.12)" }}
-                  cursor={{ stroke: "rgba(100,120,200,0.15)", strokeWidth: 1 }}
-                />
-                <Area type="monotone" dataKey="outbound" stroke="#10b981" strokeWidth={2.5} fill="url(#gOut)" dot={false} />
-                <Area type="monotone" dataKey="inbound"  stroke="#6366f1" strokeWidth={2.5} fill="url(#gIn)"  dot={false} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={chart} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorOut" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.25}/>
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorIn" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.20}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={{ background: "rgba(255,255,255,0.95)", border: "1px solid rgba(99,102,241,0.15)", borderRadius: 12, fontSize: 12, boxShadow: "0 8px 30px rgba(0,0,0,0.12)" }}
+              />
+              <Area type="monotone" dataKey="outbound" stroke="#6366f1" strokeWidth={2.5} fill="url(#colorOut)" dot={false} />
+              <Area type="monotone" dataKey="inbound" stroke="#10b981" strokeWidth={2.5} fill="url(#colorIn)" dot={false} />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
 
-        {/* Recent campaigns */}
-        <div className="glass-card p-6 xl:col-span-2 fade-up">
+        {/* Campaigns */}
+        <div className="lg:col-span-2 anim-fade-up stagger-4" style={{ ...glass(), padding: "24px" }}>
           <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-[15px] font-bold text-slate-900">Campaigns</h2>
-              <p className="text-[12px] text-slate-400">Recent activity</p>
-            </div>
-            <Link href="/campaigns" className="flex items-center gap-1 rounded-xl bg-emerald-50 px-3 py-1.5 text-[12px] font-semibold text-emerald-600 transition-colors hover:bg-emerald-100">
-              View all <ArrowUpRight size={12} />
-            </Link>
+            <h2 className="text-base font-bold text-slate-800">Campaigns</h2>
+            <a href="/campaigns" className="flex items-center gap-0.5 text-[12px] font-semibold text-indigo-500 hover:text-indigo-700 transition-colors">
+              View all <ChevronRight size={13} />
+            </a>
           </div>
           <div className="space-y-3">
-            {data?.recentCampaigns.length === 0 && (
-              <div className="py-10 text-center text-[13px] text-slate-400">No campaigns yet</div>
-            )}
-            {data?.recentCampaigns.map((c) => {
-              const readPct = c.sent ? Math.round((c.read / c.sent) * 100) : 0;
+            {loading ? Array.from({length:4}).map((_,i) => (
+              <div key={i} className="skeleton h-14 w-full" />
+            )) : campaigns.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Megaphone size={32} className="text-slate-300 mb-2" />
+                <p className="text-sm text-slate-400">No campaigns yet</p>
+              </div>
+            ) : campaigns.map((c) => {
+              const st = STATUS_STYLES[c.status] || STATUS_STYLES.PAUSED;
               return (
-                <div key={c.id} className="glass-sm rounded-2xl p-3.5 transition-all hover:shadow-md">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-[13px] font-semibold text-slate-800 leading-tight">{c.name}</p>
-                    <Badge tone={statusTone(c.status)}>{c.status}</Badge>
+                <div key={c.id} className="flex items-center gap-3 rounded-xl p-3 transition-all duration-150 hover:bg-indigo-50/50 cursor-pointer"
+                  style={{ border: "1px solid rgba(99,102,241,0.06)" }}>
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl"
+                    style={{ background: "linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%)", boxShadow: "0 4px 12px rgba(99,102,241,0.3)" }}>
+                    <Megaphone size={15} className="text-white" />
                   </div>
-                  <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                    <div className="h-full rounded-full gradient-emerald transition-all duration-700" style={{ width: `${readPct}%` }} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[13px] font-semibold text-slate-700">{c.name}</p>
+                    <p className="text-[11px] text-slate-400">{c.sent ?? c.sentCount ?? 0} sent · {c.readRate ?? 0}% read</p>
                   </div>
-                  <p className="mt-1.5 text-[11px] text-slate-400">
-                    {c.sent.toLocaleString()} sent · <span className="font-semibold text-emerald-600">{readPct}% read</span> · {c.replied} replies
-                  </p>
+                  <span className="flex-shrink-0 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold"
+                    style={{ background: st.bg, color: st.color }}>
+                    <span className="h-1.5 w-1.5 rounded-full inline-block" style={{ background: st.dot }} />
+                    {c.status}
+                  </span>
                 </div>
               );
             })}
-            {!data && [1, 2, 3].map((i) => (
-              <div key={i} className="skeleton h-16 rounded-2xl" />
-            ))}
           </div>
         </div>
       </div>
 
-      {/* Agent performance */}
-      {data && data.agents.length > 0 && (
-        <div className="glass-card p-6 fade-up">
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <h2 className="text-[15px] font-bold text-slate-900">Agent Performance</h2>
-              <p className="text-[12px] text-slate-400">Conversation handling metrics</p>
+      {/* Quick Actions */}
+      <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4 anim-fade-up stagger-5">
+        {[
+          { label: "Send Campaign", icon: Megaphone, href: "/campaigns", bg: "linear-gradient(135deg,#6366f1,#8b5cf6)", glow: "rgba(99,102,241,0.3)" },
+          { label: "New Contact", icon: Users, href: "/contacts", bg: "linear-gradient(135deg,#10b981,#059669)", glow: "rgba(16,185,129,0.3)" },
+          { label: "Automation", icon: Zap, href: "/automation", bg: "linear-gradient(135deg,#f59e0b,#ef4444)", glow: "rgba(245,158,11,0.3)" },
+          { label: "View Inbox", icon: MessageSquare, href: "/inbox", bg: "linear-gradient(135deg,#3b82f6,#06b6d4)", glow: "rgba(59,130,246,0.3)" },
+        ].map((q) => (
+          <a key={q.href} href={q.href} className="flex items-center gap-3 rounded-2xl p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+            style={{ ...glass(0.9) }}>
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-white"
+              style={{ background: q.bg, boxShadow: `0 4px 14px ${q.glow}` }}>
+              <q.icon size={18} />
             </div>
-            <Link href="/team" className="flex items-center gap-1 text-[12px] font-semibold text-emerald-600 hover:text-emerald-700">
-              <TrendingUp size={13} /> Full report
-            </Link>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-slate-100 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-                  <th className="pb-3">Agent</th>
-                  <th className="pb-3">Open</th>
-                  <th className="pb-3">Resolved</th>
-                  <th className="pb-3">Avg Response</th>
-                  <th className="pb-3">Score</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {data.agents.map((a, i) => {
-                  const score = Math.max(0, 100 - a.avgResponseMins * 2 + a.resolved);
-                  return (
-                    <tr key={a.name} className="group" style={{ animationDelay: `${i * 60}ms` }}>
-                      <td className="py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-xl gradient-violet text-[11px] font-bold text-white shadow-md shadow-violet-200">
-                            {a.name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="text-[13px] font-semibold text-slate-800">{a.name}</p>
-                            <p className="text-[11px] text-slate-400">{a.role}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3.5">
-                        <span className="rounded-lg bg-amber-50 px-2.5 py-1 text-[12px] font-bold text-amber-700">{a.open}</span>
-                      </td>
-                      <td className="py-3.5">
-                        <span className="rounded-lg bg-emerald-50 px-2.5 py-1 text-[12px] font-bold text-emerald-700">{a.resolved}</span>
-                      </td>
-                      <td className="py-3.5">
-                        <Badge tone={a.avgResponseMins <= 10 ? "green" : a.avgResponseMins <= 30 ? "amber" : "red"}>
-                          {a.avgResponseMins} min
-                        </Badge>
-                      </td>
-                      <td className="py-3.5">
-                        <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-100">
-                            <div className="h-full rounded-full gradient-emerald" style={{ width: `${Math.min(score, 100)}%` }} />
-                          </div>
-                          <span className="text-[12px] font-semibold text-slate-600">{Math.min(score, 100)}</span>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+            <span className="text-[13px] font-semibold text-slate-700">{q.label}</span>
+          </a>
+        ))}
+      </div>
     </div>
   );
 }

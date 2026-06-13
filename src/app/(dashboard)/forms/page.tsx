@@ -67,7 +67,7 @@ export default function FormsPage() {
         {forms.map((f) => {
           const flds: FormField[] = JSON.parse(f.fields || "[]");
           return (
-            <div key={f.id} className="fade-up flex flex-col glass-card p-5">
+            <div key={f.id} className="fade-up flex flex-col bg-white/90 backdrop-blur border border-white/80 shadow-lg shadow-indigo-50 rounded-2xl p-5">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2.5">
                   <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
@@ -78,7 +78,7 @@ export default function FormsPage() {
                     <p className="text-[11.5px] text-slate-400">{flds.length} fields · {f._count.responses} responses</p>
                   </div>
                 </div>
-                <Badge tone={f.enabled ? "green" : "gray"}>{f.enabled ? "Active" : "Draft"}</Badge>
+                <Badge tone={f.enabled ? "green" : "slate"}>{f.enabled ? "Active" : "Draft"}</Badge>
               </div>
               {f.description && <p className="mt-2 text-[12.5px] text-slate-500">{f.description}</p>}
               <div className="mt-3 flex flex-wrap gap-1.5">

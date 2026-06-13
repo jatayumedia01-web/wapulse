@@ -24,7 +24,7 @@ type Order = {
   contact: Contact;
 };
 
-const ORDER_TONE: Record<string, string> = { PENDING: "amber", PAID: "green", SHIPPED: "blue", CANCELLED: "red" };
+const ORDER_TONE: Record<string, "amber" | "green" | "blue" | "red" | "slate"> = { PENDING: "amber", PAID: "green", SHIPPED: "blue", CANCELLED: "red" };
 
 export default function CommercePage() {
   const [tab, setTab] = useState<"products" | "orders">("products");
@@ -140,7 +140,7 @@ export default function CommercePage() {
         {tab === "products" ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {products.map((p) => (
-              <div key={p.id} className="fade-up glass-card p-5">
+              <div key={p.id} className="fade-up bg-white/90 backdrop-blur border border-white/80 shadow-lg shadow-indigo-50 rounded-2xl p-5">
                 <div className="flex items-start justify-between">
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                     <Package size={20} />

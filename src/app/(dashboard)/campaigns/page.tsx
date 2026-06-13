@@ -118,7 +118,7 @@ export default function CampaignsPage() {
       />
       <div className="space-y-4 p-8">
         {campaigns.map((c) => (
-          <div key={c.id} className="fade-up glass-card p-6">
+          <div key={c.id} className="fade-up bg-white/90 backdrop-blur border border-white/80 shadow-lg shadow-indigo-50 rounded-2xl p-6">
             <div className="mb-5 flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2.5">

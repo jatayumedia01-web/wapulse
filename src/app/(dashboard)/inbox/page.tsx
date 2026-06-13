@@ -205,15 +205,17 @@ export default function InboxPage() {
 
   const detailLabels = detail?.labels.split(",").map((l) => l.trim()).filter(Boolean) ?? [];
 
+  const INPUT = "w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-[12.5px] text-slate-800 placeholder:text-slate-400 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/15";
+
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-full overflow-hidden">
       {/* Conversation list */}
-      <div className="flex w-[300px] shrink-0 flex-col border-r border-white/40" style={{ background: "rgba(255,255,255,0.82)", backdropFilter: "blur(24px)" }}>
+      <div className="flex w-[300px] shrink-0 flex-col border-r border-slate-200/60 bg-white/85 backdrop-blur-xl">
         {/* Header */}
-        <div className="px-4 pt-5 pb-3">
+        <div className="px-4 pt-5 pb-3 border-b border-slate-100">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-[17px] font-bold text-slate-900">Inbox</h1>
-            <span className="flex h-6 w-6 items-center justify-center rounded-full gradient-emerald text-[10px] font-bold text-white shadow-md shadow-emerald-200">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-[10px] font-bold text-white shadow-md shadow-emerald-200">
               {conversations.filter(c => c.unread > 0).length || conversations.length}
             </span>
           </div>
@@ -223,7 +225,7 @@ export default function InboxPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search name or phone…"
-              className="input-glass w-full py-2 pl-8 pr-3 text-[12.5px]"
+              className={`${INPUT} pl-8`}
             />
           </div>
           <div className="mt-2.5 flex items-center justify-between">
@@ -234,8 +236,8 @@ export default function InboxPage() {
                   onClick={() => setFilter(f)}
                   className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all ${
                     filter === f
-                      ? "gradient-emerald text-white shadow-md shadow-emerald-200"
-                      : "text-slate-500 hover:bg-white/80"
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-200"
+                      : "text-slate-500 hover:bg-slate-100"
                   }`}
                 >
                   {f === "ALL" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
@@ -244,24 +246,24 @@ export default function InboxPage() {
             </div>
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all ${showAdvanced || filterLabel || filterAssignee || filterUnread ? "bg-violet-100 text-violet-700" : "text-slate-400 hover:bg-white/80"}`}
+              className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all ${showAdvanced || filterLabel || filterAssignee || filterUnread ? "bg-violet-100 text-violet-700" : "text-slate-400 hover:bg-slate-100"}`}
             >
               <ListFilter size={12} /> Filter
             </button>
           </div>
           {showAdvanced && (
-            <div className="mt-2 space-y-2 glass-sm rounded-2xl p-3">
+            <div className="mt-2 space-y-2 rounded-xl bg-slate-50 border border-slate-100 p-3">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">Label</p>
-                  <select className="input-glass w-full py-1.5 px-2 text-[11.5px] text-slate-700" value={filterLabel} onChange={(e) => setFilterLabel(e.target.value)}>
+                  <select className={INPUT} value={filterLabel} onChange={(e) => setFilterLabel(e.target.value)}>
                     <option value="">Any</option>
                     {LABEL_PRESETS.map((l) => <option key={l} value={l}>{l}</option>)}
                   </select>
                 </div>
                 <div>
                   <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">Assignee</p>
-                  <select className="input-glass w-full py-1.5 px-2 text-[11.5px] text-slate-700" value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)}>
+                  <select className={INPUT} value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)}>
                     <option value="">Anyone</option>
                     {team.map((t) => <option key={t.id} value={t.name}>{t.name}</option>)}
                   </select>
@@ -281,18 +283,18 @@ export default function InboxPage() {
         </div>
 
         {/* List */}
-        <div className="flex-1 overflow-y-auto px-2 pb-2">
+        <div className="flex-1 overflow-y-auto px-2 py-2">
           {conversations.map((c) => (
             <button
               key={c.id}
               onClick={() => setSelectedId(c.id)}
-              className={`flex w-full items-start gap-3 rounded-2xl px-3 py-3 mb-1 text-left transition-all duration-200 ${
+              className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 mb-0.5 text-left transition-all duration-150 ${
                 selectedId === c.id
-                  ? "bg-gradient-to-r from-emerald-50 to-blue-50 shadow-sm border border-emerald-100/60"
-                  : "hover:bg-white/70"
+                  ? "bg-emerald-50 border border-emerald-100"
+                  : "hover:bg-slate-50"
               }`}
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl gradient-emerald text-[12px] font-bold text-white shadow-md shadow-emerald-200">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-[12px] font-bold text-white shadow-md shadow-emerald-200">
                 {initials(c.contact.name, c.contact.phone)}
               </span>
               <span className="min-w-0 flex-1">
@@ -307,7 +309,7 @@ export default function InboxPage() {
                     {c.messages[0]?.body ?? "No messages yet"}
                   </span>
                   {c.unread > 0 && (
-                    <span className="flex h-4 min-w-[16px] shrink-0 items-center justify-center rounded-full gradient-emerald px-1 text-[9px] font-bold text-white shadow-sm">
+                    <span className="flex h-4 min-w-[16px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 px-1 text-[9px] font-bold text-white">
                       {c.unread}
                     </span>
                   )}
@@ -335,7 +337,7 @@ export default function InboxPage() {
       <div className="flex min-w-0 flex-1 flex-col">
         {!detail ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 text-slate-400">
-            <div className="float-anim flex h-20 w-20 items-center justify-center rounded-3xl gradient-emerald shadow-2xl shadow-emerald-200">
+            <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-2xl shadow-emerald-200">
               <Send size={28} className="text-white" />
             </div>
             <div className="text-center">
@@ -345,9 +347,9 @@ export default function InboxPage() {
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between border-b border-white/40 bg-white/85 px-6 py-3.5 backdrop-blur-xl">
+            <div className="flex items-center justify-between border-b border-slate-200/60 bg-white/90 px-6 py-3.5 backdrop-blur-xl shadow-sm">
               <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-2xl gradient-emerald text-[12px] font-bold text-white shadow-md shadow-emerald-200">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-[12px] font-bold text-white shadow-md shadow-emerald-200">
                   {initials(detail.contact.name, detail.contact.phone)}
                 </span>
                 <div>
@@ -384,7 +386,7 @@ export default function InboxPage() {
                 <select
                   value={detail.assignee ?? ""}
                   onChange={(e) => patchConversation({ assignee: e.target.value || null })}
-                  className="input-glass rounded-xl px-3 py-1.5 text-[12px] font-semibold text-slate-600"
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-600 outline-none focus:border-emerald-400"
                 >
                   <option value="">Unassigned</option>
                   {team.map((m) => (
@@ -409,7 +411,7 @@ export default function InboxPage() {
                 {detail.messages.map((m) =>
                   m.kind === "NOTE" ? (
                     <div key={m.id} className="flex justify-center">
-                      <div className="max-w-[80%] glass-sm rounded-2xl border border-amber-200/60 px-4 py-2.5">
+                      <div className="max-w-[80%] rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2.5">
                         <p className="flex items-center gap-1.5 text-[10.5px] font-bold text-amber-700">
                           <StickyNote size={11} /> Private note · {m.author ?? "Agent"}
                         </p>
@@ -421,12 +423,12 @@ export default function InboxPage() {
                       <div
                         className={`max-w-[75%] rounded-2xl px-4 py-3 shadow-sm ${
                           m.direction === "OUT"
-                            ? "rounded-br-sm bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-emerald-200"
-                            : "rounded-bl-sm bg-white/90 text-slate-800 shadow-slate-200/60 backdrop-blur-sm border border-white/60"
+                            ? "rounded-br-sm bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-emerald-200"
+                            : "rounded-bl-sm bg-white text-slate-800 shadow-slate-200 border border-slate-100"
                         }`}
                       >
                         {m.direction === "OUT" && m.author && m.author !== "Agent" && (
-                          <span className={`mb-1 flex items-center gap-1 text-[10.5px] font-bold ${m.isAi ? "text-white/80" : "text-white/80"}`}>
+                          <span className="mb-1 flex items-center gap-1 text-[10.5px] font-bold text-white/80">
                             {m.isAi ? <Bot size={11} /> : <Zap size={11} />} {m.author}
                           </span>
                         )}
@@ -448,12 +450,12 @@ export default function InboxPage() {
             </div>
 
             {suggestions.length > 0 && (
-              <div className="flex gap-2 overflow-x-auto border-t border-white/40 bg-violet-50/60 px-6 py-2.5 backdrop-blur-sm">
+              <div className="flex gap-2 overflow-x-auto border-t border-slate-100 bg-violet-50 px-6 py-2.5">
                 {suggestions.map((s, i) => (
                   <button
                     key={i}
                     onClick={() => { setDraft(s); setSuggestions([]); }}
-                    className="shrink-0 rounded-2xl border border-violet-200 bg-white/80 px-3.5 py-1.5 text-[12px] font-medium text-violet-700 shadow-sm backdrop-blur-sm transition-all hover:bg-violet-50 hover:-translate-y-px"
+                    className="shrink-0 rounded-xl border border-violet-200 bg-white px-3.5 py-1.5 text-[12px] font-medium text-violet-700 shadow-sm transition-all hover:bg-violet-50 hover:-translate-y-px"
                   >
                     {s}
                   </button>
@@ -462,7 +464,7 @@ export default function InboxPage() {
             )}
 
             {showQuick && filteredQuick.length > 0 && (
-              <div className="border-t border-white/40 bg-white/80 px-5 py-2.5 backdrop-blur-sm">
+              <div className="border-t border-slate-100 bg-white px-5 py-2.5">
                 <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Quick replies</p>
                 <div className="max-h-36 space-y-0.5 overflow-y-auto">
                   {filteredQuick.map((q) => (
@@ -479,21 +481,21 @@ export default function InboxPage() {
               </div>
             )}
 
-            <div className={`border-t px-5 py-4 backdrop-blur-xl ${noteMode ? "border-amber-200/60 bg-amber-50/60" : "border-white/40 bg-white/80"}`}>
+            <div className={`border-t px-5 py-4 ${noteMode ? "border-amber-200 bg-amber-50" : "border-slate-100 bg-white"}`}>
               <div className="flex items-end gap-2">
                 <button
                   onClick={getSuggestions}
                   disabled={loadingSuggest}
                   title="AI reply suggestions"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 border border-violet-100 transition-all hover:bg-violet-100 hover:shadow-md disabled:opacity-50"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600 border border-violet-200 transition-all hover:bg-violet-100 hover:shadow-md disabled:opacity-50"
                 >
                   <Sparkles size={16} className={loadingSuggest ? "animate-pulse" : ""} />
                 </button>
                 <button
                   onClick={() => setNoteMode(!noteMode)}
                   title="Private note (not sent to customer)"
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-all ${
-                    noteMode ? "gradient-amber text-white border-amber-300 shadow-md shadow-amber-200" : "bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100"
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all ${
+                    noteMode ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white border-amber-300 shadow-md shadow-amber-200" : "bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100"
                   }`}
                 >
                   <StickyNote size={16} />
@@ -509,9 +511,9 @@ export default function InboxPage() {
                   }}
                   rows={1}
                   placeholder={noteMode ? "Write a private note for your team…" : "Type a message… ('/' for quick replies, Enter to send)"}
-                  className="input-glass flex-1 max-h-32 resize-none px-4 py-2.5 text-[13.5px]"
+                  className={`${INPUT} flex-1 max-h-32 resize-none py-2.5 text-[13.5px]`}
                 />
-                <Button onClick={() => sendMessage(draft)} disabled={sending || !draft.trim()} className="h-10 rounded-2xl px-5">
+                <Button onClick={() => sendMessage(draft)} disabled={sending || !draft.trim()} className="h-10 rounded-xl px-5">
                   <Send size={15} /> {noteMode ? "Note" : "Send"}
                 </Button>
               </div>
@@ -522,7 +524,7 @@ export default function InboxPage() {
                   onChange={(e) => setSimulateText(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && simulateInbound()}
                   placeholder="Demo: simulate a customer message…"
-                  className="flex-1 input-glass px-3 py-1.5 text-[12px] border-dashed border-amber-300"
+                  className={`${INPUT} flex-1 border-dashed border-amber-300 text-[12px]`}
                 />
               </div>
             </div>
@@ -532,9 +534,9 @@ export default function InboxPage() {
 
       {/* Contact panel */}
       {detail && (
-        <div className="hidden w-[260px] shrink-0 flex-col border-l border-white/40 xl:flex" style={{ background: "rgba(255,255,255,0.82)", backdropFilter: "blur(24px)" }}>
-          <div className="flex flex-col items-center border-b border-white/40 px-5 py-6">
-            <span className="flex h-14 w-14 items-center justify-center rounded-3xl gradient-emerald text-[18px] font-bold text-white shadow-xl shadow-emerald-200">
+        <div className="hidden w-[260px] shrink-0 flex-col border-l border-slate-200/60 bg-white/85 backdrop-blur-xl xl:flex">
+          <div className="flex flex-col items-center border-b border-slate-100 px-5 py-6">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-[18px] font-bold text-white shadow-xl shadow-emerald-200">
               {initials(detail.contact.name, detail.contact.phone)}
             </span>
             <p className="mt-3 text-[15px] font-bold text-slate-900">{detail.contact.name ?? "Unknown"}</p>

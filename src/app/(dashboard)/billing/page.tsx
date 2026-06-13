@@ -24,7 +24,7 @@ function UsageMeter({ label, used, limit, icon: Icon }: { label: string; used: n
   const isUnlimited = limit === -1;
   const isOver = pct >= 100;
   return (
-    <div className="rounded-xl glass-card p-4">
+    <div className="rounded-xl bg-white/90 backdrop-blur border border-white/80 shadow-lg shadow-indigo-50 rounded-2xl p-4">
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon size={14} className="text-slate-500" />
@@ -101,7 +101,7 @@ export default function BillingPage() {
       />
       <div className="space-y-6 p-8">
         {/* Current plan */}
-        <div className="glass-card p-6">
+        <div className="bg-white/90 backdrop-blur border border-white/80 shadow-lg shadow-indigo-50 rounded-2xl p-6">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[13px] font-semibold text-slate-500">Current plan</p>
