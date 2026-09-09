@@ -1,12 +1,18 @@
 import type {
+  Accreditation,
   AdmissionStep,
+  CalendarEvent,
   Club,
+  Department,
   FAQ,
   Facility,
+  Faculty,
   Leader,
   NavLink,
   NewsItem,
+  PortalFeature,
   Program,
+  Scholarship,
 } from "./types";
 
 export const siteConfig = {
@@ -146,6 +152,16 @@ export const programs: Program[] = [
       "Curiosity-driven learning habits",
       "Strong peer relationships",
     ],
+    dayInLife: [
+      "8:30 AM — Morning circle & mindfulness",
+      "9:00 AM — Play-based literacy activities",
+      "10:30 AM — Outdoor nature exploration",
+      "12:00 PM — Lunch & social skills practice",
+      "1:30 PM — Creative arts & music",
+      "3:00 PM — Story time & dismissal",
+    ],
+    facultyLead: "Ms. Emma Richardson, Early Years Coordinator",
+    relatedSlugs: ["primary-school"],
   },
   {
     slug: "primary-school",
@@ -175,6 +191,16 @@ export const programs: Program[] = [
       "Digital literacy basics",
       "Leadership through house system",
     ],
+    dayInLife: [
+      "8:00 AM — Assembly & house meetings",
+      "8:30 AM — Core subjects (Math, English, Science)",
+      "11:00 AM — STEM discovery lab session",
+      "12:30 PM — Lunch & playground",
+      "1:30 PM — Arts, PE & library rotation",
+      "3:30 PM — Homework club & dismissal",
+    ],
+    facultyLead: "Mr. James Okafor, Primary School Head",
+    relatedSlugs: ["early-years", "middle-school"],
   },
   {
     slug: "middle-school",
@@ -204,6 +230,16 @@ export const programs: Program[] = [
       "Career interest exploration",
       "Resilience and self-management",
     ],
+    dayInLife: [
+      "8:00 AM — Advisory period & goal setting",
+      "8:45 AM — Block scheduling (Sciences/Humanities)",
+      "11:00 AM — Electives: Coding, Debate, or Arts",
+      "12:30 PM — Lunch & club meetings",
+      "1:30 PM — Project-based learning labs",
+      "3:45 PM — Sports practice & study hall",
+    ],
+    facultyLead: "Dr. Priya Nair, Middle School Director",
+    relatedSlugs: ["primary-school", "high-school"],
   },
   {
     slug: "high-school",
@@ -233,6 +269,16 @@ export const programs: Program[] = [
       "Global citizenship mindset",
       "Industry-ready soft skills",
     ],
+    dayInLife: [
+      "8:00 AM — AP/IB seminar sessions",
+      "9:30 AM — Advanced coursework",
+      "11:30 AM — University counseling workshops",
+      "12:30 PM — Leadership council meetings",
+      "2:00 PM — Research & capstone projects",
+      "4:00 PM — Internship & community service",
+    ],
+    facultyLead: "Prof. Michael Torres, High School Principal",
+    relatedSlugs: ["middle-school", "co-curricular"],
   },
   {
     slug: "co-curricular",
@@ -262,6 +308,15 @@ export const programs: Program[] = [
       "Social responsibility",
       "Balanced personal growth",
     ],
+    dayInLife: [
+      "3:30 PM — Sports team training sessions",
+      "4:30 PM — Club & society meetings",
+      "5:30 PM — Music, dance & drama rehearsals",
+      "6:30 PM — Community service projects",
+      "Weekends — Inter-school competitions & festivals",
+    ],
+    facultyLead: "Mr. David Chen, Director of Student Life",
+    relatedSlugs: ["high-school"],
   },
 ];
 
@@ -321,6 +376,17 @@ export const clubs: Club[] = [
   { name: "Drama & Theatre", category: "Arts", description: "Perform in school productions and inter-school festivals." },
   { name: "Basketball Team", category: "Sports", description: "Train with professional coaches and compete regionally." },
   { name: "Coding Club", category: "STEM", description: "Learn Python, web development, and app building." },
+  { name: "Literary Society", category: "Academics", description: "Creative writing, poetry slams, and published school magazine." },
+  { name: "Football Academy", category: "Sports", description: "Professional coaching for inter-school football leagues." },
+  { name: "Science Olympiad", category: "STEM", description: "Prepare for national and international science competitions." },
+  { name: "Debate Club", category: "Leadership", description: "Weekly debates on current affairs and global issues." },
+  { name: "Art & Design Studio", category: "Arts", description: "Painting, sculpture, digital art, and annual exhibitions." },
+  { name: "Music Orchestra", category: "Arts", description: "Classical and contemporary music performances year-round." },
+  { name: "Community Service Club", category: "Service", description: "Volunteer programs supporting local NGOs and charities." },
+  { name: "Swimming Team", category: "Sports", description: "Olympic pool training with certified coaches." },
+  { name: "Entrepreneurship Club", category: "Leadership", description: "Startup ideas, business plans, and pitch competitions." },
+  { name: "Astronomy Club", category: "STEM", description: "Stargazing nights and space science exploration." },
+  { name: "Yoga & Wellness", category: "Sports", description: "Mindfulness, yoga, and holistic wellness practices." },
 ];
 
 export const galleryImages = [
@@ -364,12 +430,14 @@ export const newsEvents: NewsItem[] = [
     excerpt: "Students showcase groundbreaking projects in robotics, biology & sustainable energy.",
     image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&h=450&fit=crop",
     author: "Science Department",
-    readTime: "4 min read",
+    readTime: "5 min read",
+    tags: ["STEM", "Innovation", "Student Projects"],
     content: [
       "Bright Future International School is proud to announce the Annual Science & Innovation Fair 2026, our flagship event celebrating student creativity and scientific inquiry.",
       "This year's fair features over 120 student projects spanning robotics, biotechnology, sustainable energy, and environmental science. Visitors can explore interactive demonstrations, attend student-led presentations, and meet our young innovators.",
+      "Highlights include a robotics battle arena, a sustainable city model exhibition, and live chemistry demonstrations by Grade 11 students. Industry partners from leading tech companies will serve as guest judges.",
       "The event will be held in the Main Auditorium and STEM Complex on March 15, 2026, from 9:00 AM to 4:00 PM. Parents, alumni, and prospective families are warmly invited to attend.",
-      "Registration is free. Prize categories include Best Innovation, Sustainability Award, and People's Choice. We look forward to celebrating the brilliant minds shaping tomorrow.",
+      "Registration is free via our admissions office or online contact form. Prize categories include Best Innovation, Sustainability Award, and People's Choice. We look forward to celebrating the brilliant minds shaping tomorrow.",
     ],
   },
   {
@@ -380,7 +448,8 @@ export const newsEvents: NewsItem[] = [
     excerpt: "Our debate team secured first place at the regional inter-school competition.",
     image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&h=450&fit=crop",
     author: "Communications Team",
-    readTime: "3 min read",
+    readTime: "4 min read",
+    tags: ["Debate", "Achievement", "Competition"],
     content: [
       "Congratulations to the Bright Future Debate Team for winning first place at the Regional Inter-School Debate Championship held in Mumbai last weekend.",
       "Team members Aisha Patel, Rohan Gupta, and Meera Singh debated topics ranging from climate policy to digital ethics, impressing judges with their research depth and eloquence.",
@@ -396,7 +465,8 @@ export const newsEvents: NewsItem[] = [
     excerpt: "Prospective families are invited to explore our campus and meet our faculty.",
     image: "https://images.unsplash.com/photo-1562774053-701939374585?w=800&h=450&fit=crop",
     author: "Admissions Office",
-    readTime: "2 min read",
+    readTime: "3 min read",
+    tags: ["Admissions", "Campus Tour", "Open House"],
     content: [
       "Join us for Open House & Campus Tour Day on April 5, 2026 — the perfect opportunity for prospective families to experience Bright Future firsthand.",
       "Guided tours will cover our classrooms, science labs, sports facilities, library, and boarding halls. Meet principals, teachers, and current students who will share their experiences.",
@@ -412,12 +482,47 @@ export const newsEvents: NewsItem[] = [
     excerpt: "State-of-the-art lab equipped with 3D printers, VR headsets, and robotics kits.",
     image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&h=450&fit=crop",
     author: "Principal's Office",
-    readTime: "3 min read",
+    readTime: "4 min read",
+    tags: ["STEM", "Infrastructure", "Technology"],
     content: [
       "Bright Future International School has inaugurated a new state-of-the-art STEM Laboratory, furthering our commitment to innovation-driven education.",
       "The facility features 3D printers, virtual reality headsets, advanced robotics kits, and collaborative workstations designed for hands-on learning across all grade levels.",
       "Students will engage in project-based learning modules covering coding, engineering design, data science, and artificial intelligence fundamentals.",
       "The lab was funded through our Education Excellence Fund and will serve as a hub for inter-school STEM competitions and community workshops.",
+    ],
+  },
+  {
+    slug: "annual-cultural-festival",
+    date: "Jan 20, 2026",
+    category: "Event",
+    title: "Annual Cultural Festival — Rang De Bright Future",
+    excerpt: "Three days of music, dance, drama, and art celebrating our diverse community.",
+    image: "https://images.unsplash.com/photo-1514320291840-755a4152e9ed?w=800&h=450&fit=crop",
+    author: "Arts Department",
+    readTime: "4 min read",
+    tags: ["Arts", "Culture", "Festival"],
+    content: [
+      "Bright Future's Annual Cultural Festival 'Rang De Bright Future' returns this January with three spectacular days of performances, exhibitions, and celebrations.",
+      "Over 500 students will participate in music concerts, classical and contemporary dance performances, drama productions, and a grand art exhibition featuring works from all grade levels.",
+      "The festival opens with an international food fair representing cuisines from our 20+ nationalities, followed by evening performances in our 500-seat auditorium.",
+      "Parents and community members are invited to attend. Tickets are available at the school office or through the parent portal.",
+    ],
+  },
+  {
+    slug: "university-placement-results-2025",
+    date: "Dec 15, 2025",
+    category: "Achievement",
+    title: "Class of 2025 — Outstanding University Placements",
+    excerpt: "98% acceptance rate with students admitted to top universities worldwide.",
+    image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&h=450&fit=crop",
+    author: "Career Counseling Office",
+    readTime: "5 min read",
+    tags: ["University", "Placements", "Alumni"],
+    content: [
+      "The Class of 2025 has achieved remarkable university placement results, with 98% of graduates accepted to their first or second choice institutions.",
+      "Students received offers from prestigious universities including Oxford, MIT, University of Toronto, NUS Singapore, and IIT Delhi across diverse fields.",
+      "Over ₹2.5 crore in cumulative scholarships was awarded to our graduates, reflecting both academic excellence and the strength of our counseling program.",
+      "Our dedicated career counseling team provides personalized guidance from Grade 9 onwards, including SAT/ACT prep, essay workshops, and mock interviews.",
     ],
   },
 ];
@@ -460,6 +565,94 @@ export const admissionFAQs: FAQ[] = [
   },
 ];
 
+export const accreditations: Accreditation[] = [
+  { name: "International Baccalaureate (IB)", year: "2012", description: "Authorized IB World School offering PYP, MYP, and DP programmes." },
+  { name: "Cambridge Assessment", year: "2008", description: "Registered Cambridge International School for Primary and IGCSE." },
+  { name: "Council of International Schools", year: "2016", description: "Accredited member meeting global standards for international education." },
+  { name: "NAAC A+ Grade", year: "2020", description: "National Assessment and Accreditation Council highest rating." },
+];
+
+export const facultyMembers: Faculty[] = [
+  { name: "Dr. Meera Iyer", department: "Sciences", qualification: "PhD Chemistry, IIT Delhi", image: "https://images.unsplash.com/photo-1573497019940-1c28c88b461f?w=200&h=200&fit=crop" },
+  { name: "Mr. Thomas Wright", department: "Mathematics", qualification: "MSc Mathematics, Cambridge", image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop" },
+  { name: "Ms. Lisa Chang", department: "English & Humanities", qualification: "MA English Literature, Oxford", image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&h=200&fit=crop" },
+  { name: "Mr. Ahmed Hassan", department: "Physical Education", qualification: "MPEd, Sports Science", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop" },
+  { name: "Mrs. Sunita Rao", department: "Visual Arts", qualification: "MFA Fine Arts, JJ School", image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop" },
+  { name: "Dr. Kevin O'Brien", department: "Computer Science", qualification: "PhD CS, Stanford", image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop" },
+];
+
+export const scholarships: Scholarship[] = [
+  { name: "Academic Excellence Scholarship", coverage: "Up to 50% tuition", criteria: "Top 5% in entrance assessment & previous academic records", deadline: "Feb 15, 2026" },
+  { name: "Sports Talent Scholarship", coverage: "Up to 40% tuition", criteria: "National/state level sports achievements with trial assessment", deadline: "Feb 28, 2026" },
+  { name: "Arts & Culture Scholarship", coverage: "Up to 30% tuition", criteria: "Portfolio review in music, dance, visual arts, or drama", deadline: "Mar 1, 2026" },
+  { name: "Need-Based Financial Aid", coverage: "Up to 50% tuition", criteria: "Demonstrated financial need with supporting documentation", deadline: "Mar 15, 2026" },
+];
+
+export const requiredDocuments = [
+  "Completed application form",
+  "Birth certificate (original + copy)",
+  "Previous 2 years academic records / report cards",
+  "Transfer certificate (if applicable)",
+  "Passport-size photographs (4 copies)",
+  "Address proof (Aadhar / utility bill)",
+  "Parent/Guardian ID proof",
+  "Medical fitness certificate",
+  "Immunization records",
+];
+
+export const calendarEvents: CalendarEvent[] = [
+  { date: "Apr 10, 2026", title: "Academic Year Begins", type: "Academic", description: "Welcome back! New session starts for all grades." },
+  { date: "Apr 5, 2026", title: "Open House & Campus Tour", type: "Event", description: "Prospective families invited for campus tours and info sessions." },
+  { date: "Mar 15, 2026", title: "Science & Innovation Fair", type: "Event", description: "Annual student science exhibition and competition." },
+  { date: "Mar 22, 2026", title: "Debate Championship Finals", type: "Event", description: "Regional debate team competes at national level." },
+  { date: "May 1, 2026", title: "Labour Day Holiday", type: "Holiday", description: "School closed. Boarding students may go home." },
+  { date: "May 15–30, 2026", title: "Mid-Term Examinations", type: "Exam", description: "Assessments for Grades 1–12." },
+  { date: "Jun 21, 2026", title: "International Yoga Day", type: "Event", description: "Special wellness sessions and yoga workshops." },
+  { date: "Jul 15, 2026", title: "Annual Sports Day", type: "Event", description: "Inter-house athletics, swimming, and team sports." },
+  { date: "Aug 15, 2026", title: "Independence Day Celebration", type: "Event", description: "Flag hoisting, cultural performances, and parade." },
+  { date: "Oct 2–12, 2026", title: "Dussehra & Gandhi Jayanti Break", type: "Holiday", description: "Autumn break for all students." },
+  { date: "Nov 14, 2026", title: "Children's Day Festival", type: "Event", description: "Fun activities, games, and student performances." },
+  { date: "Dec 20–Jan 5, 2027", title: "Winter Break", type: "Holiday", description: "School closed for winter holidays." },
+];
+
+export const departments: Department[] = [
+  { name: "Admissions Office", email: "admissions@brightfuture.edu.in", phone: "+91 98765 43211", hours: "Mon–Sat: 9 AM – 5 PM" },
+  { name: "Administration", email: "admin@brightfuture.edu.in", phone: "+91 98765 43212", hours: "Mon–Sat: 8 AM – 4 PM" },
+  { name: "Accounts & Fees", email: "accounts@brightfuture.edu.in", phone: "+91 98765 43213", hours: "Mon–Fri: 9 AM – 3 PM" },
+  { name: "IT Support", email: "it@brightfuture.edu.in", phone: "+91 98765 43214", hours: "Mon–Sat: 8 AM – 6 PM" },
+];
+
+export const parentPortalFeatures: PortalFeature[] = [
+  { icon: "grades", title: "Academic Progress", description: "View report cards, grades, and teacher feedback in real time." },
+  { icon: "attendance", title: "Attendance Tracking", description: "Monitor daily attendance and receive absence notifications." },
+  { icon: "fees", title: "Fee Payments", description: "Pay tuition online, view invoices, and download receipts." },
+  { icon: "messages", title: "School Communications", description: "Receive announcements, newsletters, and direct teacher messages." },
+];
+
+export const studentPortalFeatures: PortalFeature[] = [
+  { icon: "assignments", title: "Assignments & Homework", description: "Submit work, track deadlines, and view graded feedback." },
+  { icon: "timetable", title: "Class Timetable", description: "Daily schedule, room changes, and substitute teacher updates." },
+  { icon: "library", title: "Library Resources", description: "Search catalog, reserve books, and access digital resources." },
+  { icon: "events", title: "Events & Activities", description: "Club schedules, sports fixtures, and school event calendar." },
+];
+
+export const sportsTeams = [
+  { name: "Football", level: "U12, U15, U18", achievements: "Regional Champions 2025" },
+  { name: "Basketball", level: "U14, U16, U18", achievements: "State Runners-up 2025" },
+  { name: "Swimming", level: "All ages", achievements: "12 national-level swimmers" },
+  { name: "Cricket", level: "U13, U16, U19", achievements: "Inter-school league winners" },
+  { name: "Athletics", level: "Track & Field", achievements: "5 district records held" },
+  { name: "Tennis", level: "Singles & Doubles", achievements: "National junior tournament participants" },
+];
+
+export const privacySections = [
+  { title: "Information We Collect", content: "We collect personal information including student names, parent contact details, academic records, and health information necessary for educational services. This data is collected through application forms, portal registrations, and direct communications." },
+  { title: "How We Use Your Data", content: "Your information is used solely for educational purposes: enrollment processing, academic record keeping, communication with parents, fee management, and compliance with regulatory requirements. We never sell personal data to third parties." },
+  { title: "Data Security", content: "We implement industry-standard security measures including encrypted databases, secure portal authentication, and restricted staff access. Regular security audits ensure your data remains protected." },
+  { title: "Your Rights", content: "Parents and guardians may request access to, correction of, or deletion of their child's personal data by contacting our administration office. Requests are processed within 15 business days." },
+  { title: "Contact for Privacy Concerns", content: "For privacy-related inquiries, email privacy@brightfuture.edu.in or write to our Data Protection Officer at the school address." },
+];
+
 export const footerLinks = {
   quick: [
     { label: "About Us", href: "/about" },
@@ -471,9 +664,9 @@ export const footerLinks = {
   resources: [
     { label: "Parent Portal", href: "/portal/parent" },
     { label: "Student Login", href: "/portal/student" },
-    { label: "School Calendar", href: "/news" },
+    { label: "School Calendar", href: "/calendar" },
     { label: "Fee Structure", href: "/admissions#fees" },
-    { label: "Privacy Policy", href: "/contact#privacy" },
+    { label: "Privacy Policy", href: "/privacy" },
   ],
 };
 

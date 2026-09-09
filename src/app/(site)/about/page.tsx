@@ -1,23 +1,26 @@
-import { Award, Globe2, Users2 } from "lucide-react";
+import { Award, Globe2, Shield, Sparkles, Users2 } from "lucide-react";
 import Image from "next/image";
 import type { Metadata } from "next";
+import CTABanner from "@/components/school/CTABanner";
 import PageHero from "@/components/school/PageHero";
 import ScrollReveal from "@/components/school/ScrollReveal";
 import SectionHeading from "@/components/school/SectionHeading";
-import StatsBanner from "@/components/school/StatsBanner";
 import {
   aboutCards,
   aboutStats,
+  accreditations,
   coreValues,
+  facultyMembers,
   leadership,
   timeline,
 } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "About Us | Bright Future International School",
-  description: "Learn about our mission, values, leadership, and 25+ years of educational excellence.",
+  description: "Our mission, values, leadership, accreditations, and 25+ years of educational excellence.",
 };
 
+const valueIcons = [Sparkles, Shield, Award, Globe2];
 const cardIcons = [Users2, Award, Globe2];
 
 export default function AboutPage() {
@@ -38,7 +41,7 @@ export default function AboutPage() {
               <SectionHeading
                 label="Our Story"
                 title="A Legacy of Excellence Since 1998"
-                description="Bright Future International School was founded with a vision to provide world-class education that balances academic rigor with character development. Today, we serve 1,500+ students from 20+ countries on our 50-acre campus."
+                description="Bright Future International School was founded with a vision to provide world-class education that balances academic rigor with character development. Today, we serve 1,500+ students from 20+ countries on our 50-acre campus in New Delhi."
               />
               <div className="mt-8 flex flex-wrap gap-8">
                 {aboutStats.map((stat) => (
@@ -51,13 +54,7 @@ export default function AboutPage() {
             </ScrollReveal>
             <ScrollReveal delay={150}>
               <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-xl">
-                <Image
-                  src="https://images.unsplash.com/photo-1562774053-701939374585?w=900&h=700&fit=crop"
-                  alt="School campus"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                />
+                <Image src="https://images.unsplash.com/photo-1562774053-701939374585?w=900&h=700&fit=crop" alt="School campus" fill className="object-cover" sizes="50vw" />
               </div>
             </ScrollReveal>
           </div>
@@ -95,20 +92,42 @@ export default function AboutPage() {
       <section className="py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
-            <SectionHeading label="Core Values" title="The Principles We Live By" align="center" />
+            <SectionHeading label="Accreditations" title="Globally Recognized Standards" align="center" />
           </ScrollReveal>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {coreValues.map((value, i) => (
-              <ScrollReveal key={value.title} delay={i * 80}>
+            {accreditations.map((acc, i) => (
+              <ScrollReveal key={acc.name} delay={i * 80}>
                 <div className="card-hover rounded-xl border border-gray-100 bg-white p-6 text-center shadow-sm">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gold/10">
-                    <span className="font-serif text-lg font-bold text-gold">{value.title[0]}</span>
-                  </div>
-                  <h3 className="font-serif text-lg font-bold text-navy">{value.title}</h3>
-                  <p className="mt-2 text-sm text-gray-text">{value.description}</p>
+                  <p className="font-serif text-2xl font-bold text-gold">{acc.year}</p>
+                  <h3 className="mt-2 text-sm font-bold text-navy">{acc.name}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-gray-text">{acc.description}</p>
                 </div>
               </ScrollReveal>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-cream py-16 sm:py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <ScrollReveal>
+            <SectionHeading label="Core Values" title="The Principles We Live By" align="center" />
+          </ScrollReveal>
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {coreValues.map((value, i) => {
+              const Icon = valueIcons[i];
+              return (
+                <ScrollReveal key={value.title} delay={i * 80}>
+                  <div className="card-hover rounded-xl border border-gray-100 bg-white p-6 text-center shadow-sm">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gold/10">
+                      <Icon className="h-5 w-5 text-gold" />
+                    </div>
+                    <h3 className="mt-4 font-serif text-lg font-bold text-navy">{value.title}</h3>
+                    <p className="mt-2 text-sm text-gray-text">{value.description}</p>
+                  </div>
+                </ScrollReveal>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -118,24 +137,15 @@ export default function AboutPage() {
           <ScrollReveal>
             <SectionHeading label="Our Journey" title="Milestones Through the Years" light align="center" />
           </ScrollReveal>
-          <div className="relative mt-12">
-            <div className="absolute left-4 top-0 hidden h-full w-0.5 bg-gold/30 md:left-1/2 md:block" />
-            <div className="space-y-8">
-              {timeline.map((item, i) => (
-                <ScrollReveal key={item.year} delay={i * 100}>
-                  <div className={`flex flex-col gap-4 md:flex-row ${i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
-                    <div className="hidden flex-1 md:block" />
-                    <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center self-start rounded-full bg-gold md:mx-auto md:self-center">
-                      <span className="h-3 w-3 rounded-full bg-navy" />
-                    </div>
-                    <div className="flex-1 rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-                      <p className="font-serif text-2xl font-bold text-gold">{item.year}</p>
-                      <p className="mt-2 text-sm text-white/75">{item.event}</p>
-                    </div>
-                  </div>
-                </ScrollReveal>
-              ))}
-            </div>
+          <div className="relative mt-12 space-y-6">
+            {timeline.map((item, i) => (
+              <ScrollReveal key={item.year} delay={i * 80}>
+                <div className="flex gap-6 rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+                  <p className="font-serif text-2xl font-bold text-gold">{item.year}</p>
+                  <p className="text-sm text-white/75">{item.event}</p>
+                </div>
+              </ScrollReveal>
+            ))}
           </div>
         </div>
       </section>
@@ -164,14 +174,38 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="bg-cream py-16">
+      <section className="bg-cream py-16 sm:py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <ScrollReveal>
+            <SectionHeading label="Our Faculty" title="Expert Educators Across Disciplines" align="center" />
+          </ScrollReveal>
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {facultyMembers.map((member, i) => (
+              <ScrollReveal key={member.name} delay={i * 60}>
+                <div className="flex items-center gap-4 rounded-xl bg-white p-5 shadow-sm">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full">
+                    <Image src={member.image} alt={member.name} fill className="object-cover" sizes="64px" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-navy">{member.name}</h3>
+                    <p className="text-xs font-medium text-gold">{member.department}</p>
+                    <p className="mt-0.5 text-xs text-gray-text">{member.qualification}</p>
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-4 sm:grid-cols-3">
             {aboutCards.map((card, i) => {
               const Icon = cardIcons[i];
               return (
                 <ScrollReveal key={card.subtitle} delay={i * 80}>
-                  <div className="flex items-center gap-4 rounded-xl bg-white p-6 shadow-sm">
+                  <div className="flex items-center gap-4 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-navy/5">
                       <Icon className="h-6 w-6 text-gold" />
                     </div>
@@ -187,7 +221,14 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <StatsBanner />
+      <CTABanner
+        title="Join the Bright Future Family"
+        description="Discover why 1,500+ families trust us with their children's education."
+        primaryLabel="APPLY NOW"
+        primaryHref="/admissions"
+        secondaryLabel="CONTACT US"
+        secondaryHref="/contact"
+      />
     </>
   );
 }

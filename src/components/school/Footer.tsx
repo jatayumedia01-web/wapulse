@@ -5,10 +5,10 @@ import Link from "next/link";
 import { footerLinks, siteConfig } from "@/lib/data";
 
 const socialLinks = [
-  { label: "FB", href: "#" },
-  { label: "IG", href: "#" },
-  { label: "YT", href: "#" },
-  { label: "IN", href: "#" },
+  { label: "FB", href: "https://facebook.com" },
+  { label: "IG", href: "https://instagram.com" },
+  { label: "YT", href: "https://youtube.com" },
+  { label: "IN", href: "https://linkedin.com" },
 ];
 
 export default function Footer() {

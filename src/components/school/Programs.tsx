@@ -4,7 +4,7 @@ import Link from "next/link";
 import { programs } from "@/lib/data";
 
 export default function Programs({ preview = false }: { preview?: boolean }) {
-  const items = preview ? programs.slice(0, 5) : programs;
+  const items = preview ? programs.slice(0, 3) : programs;
 
   return (
     <section className="bg-white py-16 sm:py-24">

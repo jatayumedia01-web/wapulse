@@ -5,6 +5,7 @@ import FeaturesBar from "@/components/school/FeaturesBar";
 import Hero from "@/components/school/Hero";
 import NewsEvents from "@/components/school/NewsEvents";
 import Programs from "@/components/school/Programs";
+import QuickLinks from "@/components/school/QuickLinks";
 import StatsBanner from "@/components/school/StatsBanner";
 import Testimonials from "@/components/school/Testimonials";
 
@@ -13,6 +14,7 @@ export default function HomePage() {
     <>
       <Hero />
       <FeaturesBar />
+      <QuickLinks />
       <About />
       <Programs preview />
       <StatsBanner />
