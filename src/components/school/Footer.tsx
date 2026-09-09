@@ -1,7 +1,8 @@
 "use client";
 
 import { Mail, MapPin, Phone, Send } from "lucide-react";
-import { footerLinks } from "@/lib/data";
+import Link from "next/link";
+import { footerLinks, siteConfig } from "@/lib/data";
 
 const socialLinks = [
   { label: "FB", href: "#" },
@@ -12,7 +13,7 @@ const socialLinks = [
 
 export default function Footer() {
   return (
-    <footer id="contact" className="bg-navy-dark text-white">
+    <footer className="bg-navy-dark text-white">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
@@ -52,12 +53,12 @@ export default function Footer() {
             <ul className="mt-4 space-y-2.5">
               {footerLinks.quick.map((link) => (
                 <li key={link.label}>
-                  <a
+                  <Link
                     href={link.href}
                     className="text-sm text-white/60 transition-colors hover:text-gold"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -70,12 +71,12 @@ export default function Footer() {
             <ul className="mt-4 space-y-2.5">
               {footerLinks.resources.map((link) => (
                 <li key={link.label}>
-                  <a
+                  <Link
                     href={link.href}
                     className="text-sm text-white/60 transition-colors hover:text-gold"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -88,15 +89,15 @@ export default function Footer() {
             <ul className="mt-4 space-y-3">
               <li className="flex gap-3 text-sm text-white/60">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
-                123 Education Lane, New Delhi, India 110001
+                {siteConfig.address}
               </li>
               <li className="flex gap-3 text-sm text-white/60">
                 <Phone className="h-4 w-4 shrink-0 text-gold" />
-                +91 98765 43210
+                {siteConfig.phone}
               </li>
               <li className="flex gap-3 text-sm text-white/60">
                 <Mail className="h-4 w-4 shrink-0 text-gold" />
-                info@brightfuture.edu.in
+                {siteConfig.email}
               </li>
             </ul>
           </div>

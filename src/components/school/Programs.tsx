@@ -1,10 +1,13 @@
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { programs } from "@/lib/data";
 
-export default function Programs() {
+export default function Programs({ preview = false }: { preview?: boolean }) {
+  const items = preview ? programs.slice(0, 5) : programs;
+
   return (
-    <section id="programs" className="bg-white py-16 sm:py-24">
+    <section className="bg-white py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="section-label">Academic Programs</p>
@@ -12,15 +15,16 @@ export default function Programs() {
             Discover Our Programs
           </h2>
           <p className="mt-4 text-base text-gray-text">
-            From early childhood through high school, we offer comprehensive
-            programs designed to inspire lifelong learning and success.
+            From early childhood through high school, comprehensive programs designed
+            to inspire lifelong learning.
           </p>
         </div>
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          {programs.map((program) => (
-            <article
-              key={program.title}
+          {items.map((program) => (
+            <Link
+              key={program.slug}
+              href={`/academics/${program.slug}`}
               className="card-hover group overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
             >
               <div className="relative aspect-[4/3] overflow-hidden">
@@ -37,26 +41,28 @@ export default function Programs() {
                 </span>
               </div>
               <div className="p-4">
-                <h3 className="font-serif text-lg font-bold text-navy">
+                <h3 className="font-serif text-lg font-bold text-navy group-hover:text-gold">
                   {program.title}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-gray-text">
                   {program.description}
                 </p>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
 
-        <div className="mt-12 text-center">
-          <a
-            href="#admissions"
-            className="btn-navy inline-flex items-center gap-2 rounded px-8 py-3.5 text-sm"
-          >
-            VIEW ALL PROGRAMS
-            <ArrowRight className="h-4 w-4" />
-          </a>
-        </div>
+        {preview && (
+          <div className="mt-12 text-center">
+            <Link
+              href="/academics"
+              className="btn-navy inline-flex items-center gap-2 rounded px-8 py-3.5 text-sm"
+            >
+              VIEW ALL PROGRAMS
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );

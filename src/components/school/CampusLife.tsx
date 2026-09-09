@@ -1,10 +1,11 @@
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
-import { campusHighlights } from "@/lib/data";
+import Link from "next/link";
+import { facilities } from "@/lib/data";
 
 export default function CampusLife() {
   return (
-    <section id="campus" className="bg-cream py-16 sm:py-24">
+    <section className="bg-cream py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
           <div className="max-w-xl">
@@ -17,17 +18,17 @@ export default function CampusLife() {
               explore passions, build friendships, and create lasting memories.
             </p>
           </div>
-          <a
-            href="#contact"
+          <Link
+            href="/campus-life"
             className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-navy transition-colors hover:text-gold"
           >
             Explore Campus
             <ArrowRight className="h-4 w-4" />
-          </a>
+          </Link>
         </div>
 
         <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {campusHighlights.map((item) => (
+          {facilities.slice(0, 3).map((item) => (
             <article
               key={item.title}
               className="card-hover group overflow-hidden rounded-2xl bg-white shadow-sm"

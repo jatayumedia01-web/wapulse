@@ -2,10 +2,12 @@
 
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { navLinks } from "@/lib/data";
 
 export default function Header() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -22,6 +24,15 @@ export default function Header() {
     };
   }, [open]);
 
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/";
+    return pathname.startsWith(href);
+  };
+
   return (
     <header
       className={`sticky top-0 z-50 border-b transition-all duration-300 ${
@@ -31,7 +42,7 @@ export default function Header() {
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <Link href="#home" className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-navy shadow-md">
             <span className="font-serif text-xl font-bold text-gold">B</span>
           </div>
@@ -45,25 +56,29 @@ export default function Header() {
           </div>
         </Link>
 
-        <nav className="hidden items-center gap-6 xl:flex">
+        <nav className="hidden items-center gap-1 xl:flex">
           {navLinks.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-navy/80 transition-colors hover:text-gold"
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                isActive(link.href)
+                  ? "bg-navy/5 text-gold"
+                  : "text-navy/80 hover:text-gold"
+              }`}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
         <div className="flex items-center gap-3">
-          <a
-            href="#admissions"
+          <Link
+            href="/admissions"
             className="btn-gold hidden rounded px-5 py-2.5 text-xs sm:inline-block sm:text-sm"
           >
             APPLY NOW
-          </a>
+          </Link>
           <button
             type="button"
             aria-label="Toggle menu"
@@ -79,22 +94,19 @@ export default function Header() {
         <div className="border-t border-gray-100 bg-white xl:hidden">
           <nav className="flex flex-col px-4 py-4">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
-                className="border-b border-gray-50 py-3 text-sm font-medium text-navy/80 transition-colors hover:text-gold"
-                onClick={() => setOpen(false)}
+                className={`border-b border-gray-50 py-3 text-sm font-medium transition-colors ${
+                  isActive(link.href) ? "text-gold" : "text-navy/80 hover:text-gold"
+                }`}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
-            <a
-              href="#admissions"
-              className="btn-gold mt-4 rounded py-3 text-center text-sm"
-              onClick={() => setOpen(false)}
-            >
+            <Link href="/admissions" className="btn-gold mt-4 rounded py-3 text-center text-sm">
               APPLY NOW
-            </a>
+            </Link>
           </nav>
         </div>
       )}

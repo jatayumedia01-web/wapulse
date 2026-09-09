@@ -1,12 +1,13 @@
 import { ArrowRight, Award, Globe2, Users2 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { aboutCards, aboutStats } from "@/lib/data";
 
 const cardIcons = [Users2, Award, Globe2];
 
 export default function About() {
   return (
-    <section id="about" className="bg-cream py-16 sm:py-24">
+    <section className="bg-cream py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-4">
@@ -25,13 +26,13 @@ export default function About() {
               state-of-the-art facilities and a passionate faculty, creates an
               environment where every student can flourish.
             </p>
-            <a
-              href="#programs"
+            <Link
+              href="/about"
               className="btn-navy mt-8 inline-flex items-center gap-2 rounded px-6 py-3 text-sm"
             >
               LEARN MORE ABOUT US
               <ArrowRight className="h-4 w-4" />
-            </a>
+            </Link>
             <div className="mt-10 flex flex-wrap gap-8">
               {aboutStats.map((stat) => (
                 <div key={stat.label}>

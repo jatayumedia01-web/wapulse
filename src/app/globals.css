@@ -124,3 +124,14 @@ body {
   transform: translateY(-8px);
   box-shadow: 0 20px 40px rgba(12, 31, 61, 0.12);
 }
+
+.page-enter {
+  animation: fade-up 0.5s ease-out forwards;
+}
+
+/* Stagger children in grids */
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 320ms; }

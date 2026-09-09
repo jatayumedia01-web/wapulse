@@ -1,10 +1,13 @@
 import { ArrowRight, Calendar } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { newsEvents } from "@/lib/data";
 
-export default function NewsEvents() {
+export default function NewsEvents({ preview = false }: { preview?: boolean }) {
+  const items = preview ? newsEvents.slice(0, 3) : newsEvents;
+
   return (
-    <section id="news" className="bg-cream py-16 sm:py-24">
+    <section className="bg-cream py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
           <div className="max-w-xl">
@@ -13,23 +16,25 @@ export default function NewsEvents() {
               Latest from Our School
             </h2>
             <p className="mt-4 text-base text-gray-text">
-              Stay updated with campus news, upcoming events, and student
-              achievements.
+              Stay updated with campus news, upcoming events, and student achievements.
             </p>
           </div>
-          <a
-            href="#"
-            className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-navy transition-colors hover:text-gold"
-          >
-            View All News
-            <ArrowRight className="h-4 w-4" />
-          </a>
+          {preview && (
+            <Link
+              href="/news"
+              className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-navy transition-colors hover:text-gold"
+            >
+              View All News
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          )}
         </div>
 
-        <div className="mt-12 grid gap-8 md:grid-cols-3">
-          {newsEvents.map((item) => (
-            <article
-              key={item.title}
+        <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {items.map((item) => (
+            <Link
+              key={item.slug}
+              href={`/news/${item.slug}`}
               className="card-hover group overflow-hidden rounded-2xl bg-white shadow-sm"
             >
               <div className="relative aspect-[16/10] overflow-hidden">
@@ -52,18 +57,13 @@ export default function NewsEvents() {
                 <h3 className="mt-3 font-serif text-lg font-bold leading-snug text-navy transition-colors group-hover:text-gold">
                   {item.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-gray-text">
-                  {item.excerpt}
-                </p>
-                <a
-                  href="#"
-                  className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-navy transition-colors hover:text-gold"
-                >
+                <p className="mt-2 text-sm leading-relaxed text-gray-text">{item.excerpt}</p>
+                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-navy group-hover:text-gold">
                   Read More
                   <ArrowRight className="h-3.5 w-3.5" />
-                </a>
+                </span>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       </div>

@@ -1,8 +1,9 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function AdmissionsCTA() {
   return (
-    <section id="admissions" className="relative overflow-hidden bg-cream py-16 sm:py-24">
+    <section className="relative overflow-hidden bg-cream py-16 sm:py-24">
       <div className="absolute inset-0 opacity-5">
         <Image
           src="https://images.unsplash.com/photo-1427504494784-3a9ca7044f45?w=1920&h=600&fit=crop"
@@ -41,18 +42,15 @@ export default function AdmissionsCTA() {
               open.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
-              <a
-                href="#contact"
-                className="btn-gold rounded px-8 py-3.5 text-sm"
-              >
+              <Link href="/admissions" className="btn-gold rounded px-8 py-3.5 text-sm">
                 APPLY NOW
-              </a>
-              <a
-                href="#contact"
+              </Link>
+              <Link
+                href="/contact"
                 className="inline-flex items-center rounded border-2 border-navy px-8 py-3.5 text-sm font-semibold text-navy transition-all hover:bg-navy hover:text-white"
               >
                 SCHEDULE A TOUR
-              </a>
+              </Link>
             </div>
             <div className="mt-10 flex flex-wrap gap-6 border-t border-gray-200 pt-8">
               <div>
