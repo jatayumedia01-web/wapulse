@@ -47,62 +47,30 @@ function nebulaTexture() {
 function makeTwinkleField(
   count: number,
   placer: (i: number, out: THREE.Vector3) => void,
-  sizeMin: number,
-  sizeMax: number,
+  size: number,
   map: THREE.Texture | null,
-  color: THREE.Color,
+  color: number,
+  opacity = 0.92,
 ) {
   const positions = new Float32Array(count * 3);
-  const sizes = new Float32Array(count);
-  const phases = new Float32Array(count);
   const vec = new THREE.Vector3();
   for (let i = 0; i < count; i++) {
     placer(i, vec);
     positions[i * 3] = vec.x;
     positions[i * 3 + 1] = vec.y;
     positions[i * 3 + 2] = vec.z;
-    sizes[i] = sizeMin + Math.random() * (sizeMax - sizeMin);
-    phases[i] = Math.random() * Math.PI * 2;
   }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
-  geometry.setAttribute("aPhase", new THREE.BufferAttribute(phases, 1));
-  const material = new THREE.ShaderMaterial({
-    uniforms: {
-      uTime: { value: 0 },
-      uMap: { value: map },
-      uColor: { value: color },
-      uOpacity: { value: 0.95 },
-    },
-    vertexShader: `
-      attribute float aSize;
-      attribute float aPhase;
-      uniform float uTime;
-      varying float vAlpha;
-      void main() {
-        vec4 mv = modelViewMatrix * vec4(position, 1.0);
-        float twinkle = 0.62 + 0.38 * sin(uTime * 1.7 + aPhase);
-        vAlpha = twinkle;
-        gl_PointSize = aSize * twinkle * (300.0 / max(1.1, -mv.z));
-        gl_Position = projectionMatrix * mv;
-      }
-    `,
-    fragmentShader: `
-      uniform sampler2D uMap;
-      uniform vec3 uColor;
-      uniform float uOpacity;
-      varying float vAlpha;
-      void main() {
-        vec4 tex = texture2D(uMap, gl_PointCoord);
-        float a = tex.a * uOpacity * vAlpha;
-        if (a < 0.03) discard;
-        gl_FragColor = vec4(uColor * 1.35, a);
-      }
-    `,
+  const material = new THREE.PointsMaterial({
+    color,
+    size,
+    map: map ?? undefined,
     transparent: true,
+    opacity,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
+    sizeAttenuation: true,
     toneMapped: false,
   });
   return new THREE.Points(geometry, material);
@@ -371,6 +339,7 @@ export default function RocketScene({ onStatus }: Props) {
     renderer.domElement.style.display = "block";
     renderer.domElement.style.width = "100%";
     renderer.domElement.style.height = "100%";
+    renderer.domElement.style.background = "#000";
     renderer.domElement.setAttribute("aria-hidden", "true");
 
     const scene = new THREE.Scene();
@@ -406,37 +375,40 @@ export default function RocketScene({ onStatus }: Props) {
     const world = new THREE.Group();
     scene.add(world);
 
-    const nebula = new THREE.Mesh(
-      new THREE.PlaneGeometry(9.5, 9.5),
-      new THREE.MeshBasicMaterial({
-        map: nebulaMap ?? undefined,
-        transparent: true,
-        opacity: 0.32,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        toneMapped: false,
-      }),
-    );
-    nebula.position.set(0.1, 0.1, -2.4);
-    world.add(nebula);
+    const nebula = nebulaMap
+      ? new THREE.Mesh(
+          new THREE.PlaneGeometry(9.5, 9.5),
+          new THREE.MeshBasicMaterial({
+            map: nebulaMap,
+            transparent: true,
+            opacity: 0.28,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            toneMapped: false,
+          }),
+        )
+      : null;
+    if (nebula) {
+      nebula.position.set(0.1, 0.1, -2.4);
+      world.add(nebula);
+    }
 
     const planet = new THREE.Group();
     const shells = [
       makeTwinkleField(
         narrow ? 3800 : 8200,
         fibonacciPlacer(narrow ? 3800 : 8200, 2.48, 0.014),
-        4.2,
-        7.2,
+        narrow ? 0.042 : 0.05,
         sprite,
-        new THREE.Color(0xffffff),
+        0xffffff,
       ),
       makeTwinkleField(
         narrow ? 800 : 1600,
         fibonacciPlacer(narrow ? 800 : 1600, 2.58, 0.05),
-        8,
-        14,
+        0.09,
         sprite,
-        new THREE.Color(0xf8fafc),
+        0xf8fafc,
+        0.75,
       ),
     ];
     shells.forEach((s) => planet.add(s));
@@ -444,10 +416,9 @@ export default function RocketScene({ onStatus }: Props) {
     const ringA = makeTwinkleField(
       narrow ? 480 : 980,
       ringPlacer(narrow ? 480 : 980, 3.02, 0.1),
-      4.5,
-      8,
+      0.038,
       sprite,
-      new THREE.Color(0xe2e8f0),
+      0xe2e8f0,
     );
     ringA.rotation.x = 0.5;
     ringA.rotation.z = -0.18;
@@ -456,10 +427,10 @@ export default function RocketScene({ onStatus }: Props) {
     const ringB = makeTwinkleField(
       narrow ? 280 : 620,
       ringPlacer(narrow ? 280 : 620, 3.28, 0.08),
-      3.6,
-      6.5,
+      0.032,
       sprite,
-      new THREE.Color(0x99f6e4),
+      0x99f6e4,
+      0.8,
     );
     ringB.rotation.x = -0.72;
     ringB.rotation.y = 0.35;
@@ -469,10 +440,10 @@ export default function RocketScene({ onStatus }: Props) {
     const stars = makeTwinkleField(
       narrow ? 600 : 1300,
       starPlacer(10, 30),
-      5,
-      10,
+      0.04,
       sprite,
-      new THREE.Color(0xffffff),
+      0xffffff,
+      0.8,
     );
     scene.add(stars);
 
@@ -499,20 +470,24 @@ export default function RocketScene({ onStatus }: Props) {
     engine.position.set(0.02, -1.4, 0.78);
     world.add(engine);
 
-    const halo = new THREE.Sprite(
-      new THREE.SpriteMaterial({
-        map: sprite ?? undefined,
-        color: 0x7dd3c7,
-        transparent: true,
-        opacity: 0.22,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        toneMapped: false,
-      }),
-    );
-    halo.scale.set(4.8, 4.8, 1);
-    halo.position.set(0, 0.1, -0.4);
-    world.add(halo);
+    const halo = sprite
+      ? new THREE.Sprite(
+          new THREE.SpriteMaterial({
+            map: sprite,
+            color: 0x7dd3c7,
+            transparent: true,
+            opacity: 0.16,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            toneMapped: false,
+          }),
+        )
+      : null;
+    if (halo) {
+      halo.scale.set(3.4, 3.4, 1);
+      halo.position.set(0, 0.1, -0.55);
+      world.add(halo);
+    }
 
     const pointer = { x: 0, y: 0, down: false, lastX: 0, lastY: 0, velX: 0, velY: 0, moved: 0 };
     const spherical = { yaw: 0.1, pitch: -0.05 };
@@ -596,11 +571,6 @@ export default function RocketScene({ onStatus }: Props) {
       const dt = Math.min(timer.getDelta(), 0.05);
       boost = Math.max(0, boost - dt * 1.15);
 
-      const twinkleMats = [...shells, ringA, ringB, stars].map(
-        (p) => p.material as THREE.ShaderMaterial,
-      );
-      for (const mat of twinkleMats) mat.uniforms.uTime.value = t;
-
       const plume = rocket.userData.plume as THREE.Mesh;
       const plumeCore = rocket.userData.plumeCore as THREE.Mesh;
       const core = rocket.userData.core as THREE.Mesh;
@@ -613,9 +583,11 @@ export default function RocketScene({ onStatus }: Props) {
       coreMat.opacity = 0.55 + boost * 0.3;
       core.scale.setScalar(1 + boost * 0.45 + Math.sin(t * 20) * 0.08);
       engine.intensity = 9 + Math.sin(t * 14) * 2.4 + boost * 10;
-      const haloMat = halo.material as THREE.SpriteMaterial;
-      haloMat.opacity = 0.18 + Math.sin(t * 1.4) * 0.04 + boost * 0.16;
-      halo.scale.setScalar(4.6 + boost * 1.2 + Math.sin(t * 1.1) * 0.15);
+      if (halo) {
+        const haloMat = halo.material as THREE.SpriteMaterial;
+        haloMat.opacity = 0.14 + Math.sin(t * 1.4) * 0.03 + boost * 0.14;
+        halo.scale.setScalar(3.2 + boost * 0.8 + Math.sin(t * 1.1) * 0.12);
+      }
 
       const pos = exhaust.geometry.getAttribute("position") as THREE.BufferAttribute;
       const speeds = exhaust.userData.speeds as Float32Array;
@@ -634,7 +606,7 @@ export default function RocketScene({ onStatus }: Props) {
         ringA.rotation.z = -0.18 + t * 0.02;
         ringB.rotation.z = t * -0.028;
         stars.rotation.y = t * 0.007;
-        nebula.rotation.z = t * 0.01;
+        if (nebula) nebula.rotation.z = t * 0.01;
         rocket.position.y = 0.08 + Math.sin(t * 1.2) * 0.045 + boost * 0.18;
         rocket.rotation.x = -0.14 + pointer.y * 0.05;
         rocket.rotation.z = 0.08 + pointer.x * 0.06;
