@@ -6,13 +6,25 @@ const PUBLIC_PATHS = [
   "/api/auth/",
   "/api/webhook",
   "/api/billing/webhook",
+  "/api/contact",
+];
+
+// Public corporate/marketing pages — no auth required.
+const PUBLIC_MARKETING_PATHS = [
+  "/",
+  "/about",
+  "/features",
+  "/pricing",
+  "/contact",
+  "/privacy",
+  "/terms",
 ];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return NextResponse.next();
-  if (pathname.startsWith("/_next") || pathname.startsWith("/favicon") || pathname === "/") return NextResponse.next();
+  if (pathname.startsWith("/_next") || pathname.startsWith("/favicon") || PUBLIC_MARKETING_PATHS.includes(pathname)) return NextResponse.next();
 
   const auth = await getAuthContextFromRequest(req);
 
