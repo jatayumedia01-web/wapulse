@@ -1,5 +1,12 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import RocketHero from "@/components/hero/RocketHero";
 
-export default function RootPage() {
-  redirect("/auth/login");
+export const metadata: Metadata = {
+  title: "WAPulse — Launch WhatsApp at planetary scale",
+  description:
+    "Cinematic 3D command deck for WhatsApp Business: team inbox, broadcast campaigns, automation, and developer APIs.",
+};
+
+export default function HomePage() {
+  return <RocketHero />;
 }
