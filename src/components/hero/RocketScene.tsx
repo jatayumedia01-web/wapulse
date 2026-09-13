@@ -2,10 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import type { HeroSceneStatus } from "./scene-types";
 
 type Props = {
@@ -203,15 +199,12 @@ function buildRocket() {
   panel.position.set(0, 0.02, 0.325);
   rocket.add(panel);
 
-  const glassMat = new THREE.MeshPhysicalMaterial({
+  const glassMat = new THREE.MeshStandardMaterial({
     color: 0xb8ecff,
     emissive: 0x38bdf8,
-    emissiveIntensity: 1.25,
-    metalness: 0.05,
-    roughness: 0.05,
-    transmission: 0.35,
-    transparent: true,
-    opacity: 0.95,
+    emissiveIntensity: 1.35,
+    metalness: 0.12,
+    roughness: 0.08,
   });
   const ports = [
     [0, 0.62, 0.29],
@@ -365,15 +358,15 @@ export default function RocketScene({ onStatus }: Props) {
 
     const renderer = new THREE.WebGLRenderer({
       antialias: !narrow,
-      alpha: true,
+      alpha: false,
       powerPreference: "high-performance",
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, narrow ? 1.4 : 2));
     renderer.setSize(host.clientWidth, host.clientHeight);
-    renderer.setClearColor(0x000000, 0);
+    renderer.setClearColor(0x000000, 1);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 1.12;
     host.appendChild(renderer.domElement);
     renderer.domElement.style.display = "block";
     renderer.domElement.style.width = "100%";
@@ -392,18 +385,23 @@ export default function RocketScene({ onStatus }: Props) {
     const baseZ = narrow ? 6.6 : 5.85;
     camera.position.set(0, narrow ? 0.5 : 0.18, baseZ);
 
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    const envScene = new THREE.Scene();
-    envScene.add(new THREE.HemisphereLight(0xb9d4ff, 0x0b1220, 1.2));
-    const envKey = new THREE.DirectionalLight(0xffffff, 1.4);
-    envKey.position.set(4, 6, 2);
-    envScene.add(envKey);
-    const envFill = new THREE.PointLight(0x10b981, 8, 20);
-    envFill.position.set(-4, 1, 3);
-    envScene.add(envFill);
-    const envMap = pmrem.fromScene(envScene, 0.04).texture;
-    scene.environment = envMap;
-    pmrem.dispose();
+    let envMap: THREE.Texture | null = null;
+    try {
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const envScene = new THREE.Scene();
+      envScene.add(new THREE.HemisphereLight(0xb9d4ff, 0x0b1220, 1.2));
+      const envKey = new THREE.DirectionalLight(0xffffff, 1.4);
+      envKey.position.set(4, 6, 2);
+      envScene.add(envKey);
+      const envFill = new THREE.PointLight(0x10b981, 8, 20);
+      envFill.position.set(-4, 1, 3);
+      envScene.add(envFill);
+      envMap = pmrem.fromScene(envScene, 0.04).texture;
+      scene.environment = envMap;
+      pmrem.dispose();
+    } catch {
+      scene.environment = null;
+    }
 
     const world = new THREE.Group();
     scene.add(world);
@@ -501,16 +499,20 @@ export default function RocketScene({ onStatus }: Props) {
     engine.position.set(0.02, -1.4, 0.78);
     world.add(engine);
 
-    const composer = new EffectComposer(renderer);
-    composer.addPass(new RenderPass(scene, camera));
-    const bloom = new UnrealBloomPass(
-      new THREE.Vector2(host.clientWidth, host.clientHeight),
-      narrow ? 0.38 : 0.58,
-      0.72,
-      0.16,
+    const halo = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: sprite ?? undefined,
+        color: 0x7dd3c7,
+        transparent: true,
+        opacity: 0.22,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        toneMapped: false,
+      }),
     );
-    composer.addPass(bloom);
-    composer.addPass(new OutputPass());
+    halo.scale.set(4.8, 4.8, 1);
+    halo.position.set(0, 0.1, -0.4);
+    world.add(halo);
 
     const pointer = { x: 0, y: 0, down: false, lastX: 0, lastY: 0, velX: 0, velY: 0, moved: 0 };
     const spherical = { yaw: 0.1, pitch: -0.05 };
@@ -578,8 +580,7 @@ export default function RocketScene({ onStatus }: Props) {
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
-      composer.setSize(w, h);
-      bloom.resolution.set(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, narrow ? 1.4 : 2));
     };
     const resizeObserver = new ResizeObserver(onResize);
     resizeObserver.observe(host);
@@ -612,7 +613,9 @@ export default function RocketScene({ onStatus }: Props) {
       coreMat.opacity = 0.55 + boost * 0.3;
       core.scale.setScalar(1 + boost * 0.45 + Math.sin(t * 20) * 0.08);
       engine.intensity = 9 + Math.sin(t * 14) * 2.4 + boost * 10;
-      bloom.strength = (narrow ? 0.38 : 0.58) + boost * 0.35;
+      const haloMat = halo.material as THREE.SpriteMaterial;
+      haloMat.opacity = 0.18 + Math.sin(t * 1.4) * 0.04 + boost * 0.16;
+      halo.scale.setScalar(4.6 + boost * 1.2 + Math.sin(t * 1.1) * 0.15);
 
       const pos = exhaust.geometry.getAttribute("position") as THREE.BufferAttribute;
       const speeds = exhaust.userData.speeds as Float32Array;
@@ -654,7 +657,7 @@ export default function RocketScene({ onStatus }: Props) {
       );
       camera.position.z = THREE.MathUtils.lerp(camera.position.z, baseZ * zoom + breathe, 0.08);
       camera.lookAt(0, narrow ? 0.32 : 0.06, 0);
-      composer.render();
+      renderer.render(scene, camera);
 
       const nextStatus = `${boost > 0.08}|${zoom.toFixed(2)}|${pointer.down}`;
       if (nextStatus !== lastStatus) {
@@ -681,8 +684,7 @@ export default function RocketScene({ onStatus }: Props) {
       window.removeEventListener("wapulse-hero-ignite", onIgniteEvent);
       sprite?.dispose();
       nebulaMap?.dispose();
-      envMap.dispose();
-      composer.dispose();
+      envMap?.dispose();
       renderer.dispose();
       scene.traverse((obj) => {
         const mesh = obj as THREE.Mesh;
