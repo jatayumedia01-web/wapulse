@@ -99,10 +99,12 @@ export default function RocketHero() {
         id="product"
         className="relative isolate flex min-h-screen items-end overflow-hidden pb-16 pt-28 sm:items-center sm:pb-0 sm:pt-0"
       >
-        <RocketScene />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.18)_55%,rgba(0,0,0,0.72)_100%)]" />
+        <div className="absolute inset-0 lg:left-[34%]">
+          <RocketScene />
+        </div>
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_left,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.12)_42%,transparent_68%),radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.35)_100%)]" />
 
-        <div className="relative z-10 mx-auto grid w-full max-w-6xl gap-10 px-5 sm:px-8 lg:grid-cols-[minmax(0,1fr)_42%]">
+        <div className="relative z-10 mx-auto grid w-full max-w-6xl gap-10 px-5 sm:px-8 lg:grid-cols-[minmax(0,1fr)_46%]">
           <div className="max-w-xl">
             <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.28em] text-white/50">
               WhatsApp Business Platform
