@@ -3,7 +3,8 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Inbox, Megaphone, Menu, Workflow, X, Zap } from "lucide-react";
+import { Flame, Inbox, Megaphone, Menu, Workflow, X, Zap } from "lucide-react";
+import type { HeroSceneStatus } from "./scene-types";
 
 const RocketScene = dynamic(() => import("./RocketScene"), {
   ssr: false,
@@ -30,6 +31,15 @@ const features = [
 
 export default function RocketHero() {
   const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState<HeroSceneStatus>({
+    thrusting: false,
+    zoom: 1,
+    orbiting: false,
+  });
+
+  function ignite() {
+    window.dispatchEvent(new Event("wapulse-hero-ignite"));
+  }
 
   return (
     <div className="hero-space min-h-screen bg-black text-white">
@@ -100,7 +110,7 @@ export default function RocketHero() {
         className="relative isolate flex min-h-screen items-end overflow-hidden pb-16 pt-28 sm:items-center sm:pb-0 sm:pt-0"
       >
         <div className="absolute inset-0 lg:left-[34%]">
-          <RocketScene />
+          <RocketScene onStatus={setStatus} />
         </div>
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_left,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.12)_42%,transparent_68%),radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.35)_100%)]" />
 
@@ -130,9 +140,32 @@ export default function RocketHero() {
               >
                 Sign in
               </Link>
+              <button
+                type="button"
+                onClick={ignite}
+                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-2.5 text-[13px] font-semibold text-emerald-200 transition hover:bg-emerald-400/20"
+              >
+                <Flame size={14} />
+                Ignite
+              </button>
             </div>
-            <p className="mt-6 text-[12px] text-white/35">
-              Drag the scene to orbit the rocket · particle field rotates slowly
+
+            <div className="hero-hud mt-8 grid max-w-md grid-cols-3 gap-2 text-[10px] tracking-[0.16em] uppercase">
+              <div className={`hero-hud-cell ${status.orbiting ? "is-live" : ""}`}>
+                <span>Orbit</span>
+                <strong>{status.orbiting ? "Tracking" : "Auto"}</strong>
+              </div>
+              <div className={`hero-hud-cell ${status.thrusting ? "is-live" : ""}`}>
+                <span>Thrust</span>
+                <strong>{status.thrusting ? "Boost" : "Idle"}</strong>
+              </div>
+              <div className="hero-hud-cell">
+                <span>Zoom</span>
+                <strong>{status.zoom.toFixed(2)}x</strong>
+              </div>
+            </div>
+            <p className="mt-4 text-[12px] text-white/35">
+              Drag to orbit · scroll to zoom · click or Ignite for boost
             </p>
           </div>
         </div>

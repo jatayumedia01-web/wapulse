@@ -60,3 +60,21 @@ body {
 .hero-space { background: #000; }
 .hero-space canvas { cursor: grab; }
 .hero-space canvas:active { cursor: grabbing; }
+.hero-hud-cell {
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  padding: 10px 10px 8px;
+}
+.hero-hud-cell span { display: block; color: rgba(255,255,255,0.38); }
+.hero-hud-cell strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.88);
+}
+.hero-hud-cell.is-live {
+  border-color: rgba(16,185,129,0.45);
+  box-shadow: 0 0 18px rgba(16,185,129,0.18);
+}
