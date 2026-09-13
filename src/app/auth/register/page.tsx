@@ -44,9 +44,9 @@ export default function RegisterPage() {
       <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
           <div className="mb-8 flex flex-col items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white">
+            <Link href="/" className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white">
               <Zap size={24} strokeWidth={2.5} />
-            </span>
+            </Link>
             <div className="text-center">
               <h1 className="text-2xl font-bold text-slate-900">Create your workspace</h1>
               <p className="mt-1 text-[13.5px] text-slate-500">Set up WAPulse for your business — free forever</p>
@@ -119,7 +119,10 @@ export default function RegisterPage() {
             </button>
 
             <p className="mt-4 text-center text-[11.5px] text-slate-400">
-              By registering you agree to our Terms & Privacy Policy.
+              By registering you agree to our{" "}
+              <Link href="/terms" className="font-medium text-slate-500 hover:text-emerald-600">Terms</Link>
+              {" & "}
+              <Link href="/privacy" className="font-medium text-slate-500 hover:text-emerald-600">Privacy Policy</Link>.
             </p>
             <p className="mt-3 text-center text-[13px] text-slate-500">
               Already have an account?{" "}
@@ -131,12 +134,12 @@ export default function RegisterPage() {
 
       {/* Right — perks panel */}
       <div className="hidden flex-col justify-center bg-[#0c1b1e] px-12 lg:flex lg:w-[420px]">
-        <div className="mb-3 flex items-center gap-2.5">
+        <Link href="/" className="mb-3 flex items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500">
             <Zap size={18} strokeWidth={2.5} className="text-white" />
           </span>
           <p className="text-[17px] font-bold text-white">WAPulse</p>
-        </div>
+        </Link>
         <p className="mb-8 text-[13.5px] leading-relaxed text-slate-400">
           The complete WhatsApp Business platform — inbox, campaigns, chatbots, drip sequences, AI replies, and commerce. Built for every business.
         </p>

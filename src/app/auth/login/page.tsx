@@ -39,9 +39,9 @@ function LoginForm() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 flex flex-col items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-xl shadow-emerald-200">
+          <Link href="/" className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-xl shadow-emerald-200">
             <Zap size={24} strokeWidth={2.5} />
-          </span>
+          </Link>
           <div className="text-center">
             <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
             <p className="mt-1 text-[13.5px] text-slate-500">Sign in to your WAPulse workspace</p>

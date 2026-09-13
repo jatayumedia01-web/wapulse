@@ -56,6 +56,19 @@ export async function sendInvitationEmail(to: string, orgName: string, inviterNa
   `);
 }
 
+export async function sendContactMessage(data: { name: string; email: string; company?: string; subject: string; message: string }) {
+  const salesInbox = process.env.SALES_EMAIL ?? "sales@wapulse.io";
+  await send(salesInbox, `New contact form message: ${data.subject}`, `
+    <h2>New message from the WAPulse website</h2>
+    <p><strong>Name:</strong> ${data.name}</p>
+    <p><strong>Email:</strong> ${data.email}</p>
+    ${data.company ? `<p><strong>Company:</strong> ${data.company}</p>` : ""}
+    <p><strong>Subject:</strong> ${data.subject}</p>
+    <p><strong>Message:</strong></p>
+    <p>${data.message.replace(/\n/g, "<br/>")}</p>
+  `);
+}
+
 export async function sendUsageWarningEmail(to: string, name: string, resource: string, pct: number) {
   await send(to, `WAPulse: ${resource} usage at ${pct}%`, `
     <h2>Usage Alert</h2>
